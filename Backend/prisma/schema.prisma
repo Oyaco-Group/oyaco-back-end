@@ -1,0 +1,112 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id         Int      @id @default(autoincrement())
+  name       String?
+  email      String?
+  address    String?
+  password   String?
+  user_role  String?
+  orders     Order[]
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+}
+
+model ProductMovement {
+  id                Int            @id @default(autoincrement())
+  master_product    MasterProduct? @relation(fields: [master_product_id], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  master_product_id Int
+  inventory         Inventory[]
+  movement_type     String?
+  quantity          Int?
+  expiration_date   DateTime       @default(now())
+  created_at        DateTime       @default(now())
+  updated_at        DateTime       @updatedAt
+}
+
+model Category {
+  id              Int             @id @default(autoincrement())
+  name            String?
+  master_products MasterProduct[]
+  created_at      DateTime        @default(now())
+  updated_at      DateTime        @updatedAt
+}
+
+model Warehouse {
+  id          Int         @id @default(autoincrement())
+  name        String?
+  location    String?
+  orders      Order[]
+  inventories Inventory[]
+  created_at  DateTime    @default(now())
+  updated_at  DateTime    @updatedAt
+}
+
+model Order {
+  id                Int            @id @default(autoincrement())
+  user              User?          @relation(fields: [user_id], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  user_id           Int?
+  warehouse         Warehouse?     @relation(fields: [warehouse_id], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  warehouse_id      Int?
+  inventory         Inventory?     @relation(fields: [inventory_id], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  inventory_id      Int?
+  master_product    MasterProduct? @relation(fields: [master_product_id], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  master_product_id Int?
+  complaint         Complaint?     @relation(fields: [complaint_id], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  complaint_id      Int?
+  quantity          Int?
+  payment_type      String?
+  status            String?
+  created_at        DateTime       @default(now())
+  updated_at        DateTime       @updatedAt
+}
+
+model Complaint {
+  id         Int      @id @default(autoincrement())
+  text       String?
+  orders     Order[]
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+}
+
+model Inventory {
+  id                  Int              @id @default(autoincrement())
+  master_product      MasterProduct?   @relation(fields: [master_product_id], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  master_product_id   Int?
+  product_movement    ProductMovement? @relation(fields: [product_movement_id], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  product_movement_id Int?
+  warehouse           Warehouse?       @relation(fields: [warehouse_id], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  warehouse_id        Int?
+  orders              Order[]
+  stock               Int?
+  expiration_status   Boolean?
+  created_at          DateTime         @default(now())
+  updated_at          DateTime         @updatedAt
+}
+
+model MasterProduct {
+  id                Int               @id @default(autoincrement())
+  name              String?
+  image             String?
+  sku               String?
+  price             String?
+  category          Category?         @relation(fields: [category_id], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  category_id       Int?
+  orders            Order[]
+  product_movements ProductMovement[]
+  inventories       Inventory[]
+  created_at        DateTime          @default(now())
+  updated_at        DateTime          @updatedAt
+}
