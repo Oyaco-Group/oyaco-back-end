@@ -7,30 +7,43 @@ generator client {
   provider = "prisma-client-js"
 }
 
+generator erd {
+  provider = "prisma-erd-generator"
+}
+
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
 model User {
-  id         Int      @id @default(autoincrement())
-  name       String?
-  email      String?
-  address    String?
-  password   String?
-  user_role  String?
-  orders     Order[]
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
+  id               Int               @id @default(autoincrement())
+  name             String?
+  email            String?
+  address          String?
+  password         String?
+  user_role        String?
+  image_url        String?
+  isdelete         Boolean           @default(false)
+  product_movement ProductMovement[]
+  orders           Order[]
+  created_at       DateTime          @default(now())
+  updated_at       DateTime          @updatedAt
 }
 
 model ProductMovement {
   id                Int            @id @default(autoincrement())
+  user              User?          @relation(fields: [user_id], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  user_id           Int
   master_product    MasterProduct? @relation(fields: [master_product_id], references: [id], onUpdate: Cascade, onDelete: Cascade)
   master_product_id Int
   inventory         Inventory[]
   movement_type     String?
+  origin            String?
+  destination       String?
   quantity          Int?
+  iscondition_good  Boolean        @default(true)
+  arrival_date      DateTime       @default(now())
   expiration_date   DateTime       @default(now())
   created_at        DateTime       @default(now())
   updated_at        DateTime       @updatedAt
@@ -48,6 +61,7 @@ model Warehouse {
   id          Int         @id @default(autoincrement())
   name        String?
   location    String?
+  isdelete    Boolean     @default(false)
   orders      Order[]
   inventories Inventory[]
   created_at  DateTime    @default(now())
@@ -92,6 +106,7 @@ model Inventory {
   orders              Order[]
   stock               Int?
   expiration_status   Boolean?
+  isdelete            Boolean          @default(false)
   created_at          DateTime         @default(now())
   updated_at          DateTime         @updatedAt
 }
@@ -99,11 +114,12 @@ model Inventory {
 model MasterProduct {
   id                Int               @id @default(autoincrement())
   name              String?
-  image             String?
+  image_url         String?
   sku               String?
   price             String?
   category          Category?         @relation(fields: [category_id], references: [id], onUpdate: Cascade, onDelete: Cascade)
   category_id       Int?
+  isdelete          Boolean           @default(false)
   orders            Order[]
   product_movements ProductMovement[]
   inventories       Inventory[]

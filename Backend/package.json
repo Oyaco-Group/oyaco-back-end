@@ -21,5 +21,9 @@
     "nodemailer": "^6.9.14",
     "nodemon": "^3.1.4",
     "prisma": "^5.16.1"
+  },
+  "devDependencies": {
+    "@mermaid-js/mermaid-cli": "^10.9.1",
+    "prisma-erd-generator": "^1.11.2"
   }
 }

@@ -1,27 +1,27 @@
 const errorHandler = async (error, req, res, next) => {
-  let errorMassage = "";
 
   console.log(error);
 
-  switch (error.name) {
-    // Auth Error Handler
-    case "Unauthicated":
-      errorMassage = "User Not Authenticated";
-      res.status(402).json({ error: errorMassage });
-      break;
-
-    case "InvalidCredentials":
-      errorMassage = "Invalid Credentials";
-      res.status(402).json({ error: errorMassage });
-      break;
-    
-    // User Error Handler
-    // Admin Eror Handler
-    
-    default:
-      errorMassage = "Internal Server Error";
-      res.status(500).json({ error: errorMassage });
-      break;
+  if (error.name === 'notFound') {
+    res.status(404).json({ message: error.message });
+  }else if (error.name === 'exist'){
+    res.status(400).json({ message: error.message });
+  }else if (error.name === 'invalidCredentials'){
+    res.status(401).json({ message: error.message });
+  }else if (error.name === 'unAuthenticated'){
+    res.status(401).json({ message: error.message });
+  }else if (error.name === 'unAuthorized'){
+    res.status(403).json({ message: error.message });
+  }else if (error.name === 'invalidInput'){
+    res.status(400).json({ message: error.message });
+  }else if (error.name === 'failedToCreate'){
+    res.status(400).json({ message: error.message });
+  }else if (error.name === 'failedToUpdate'){
+    res.status(400).json({ message: error.message });
+  }else if (error.name === 'failedtoDelete'){
+    res.status(400).json({ message: error.message });
+  }else {
+    res.status(500).json({ message: 'Internal Server Error' });
   }
 };
 
