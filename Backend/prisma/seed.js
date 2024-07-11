@@ -52,7 +52,7 @@ async function main() {
     const masterProducts = [
       {
         name: "VGA",
-        image_url: "https://example.com/product1.jpg",
+        image: "https://example.com/product1.jpg",
         sku: "SKU-001",
         price: "100",
         category_id: 1, // Pastikan category_id sesuai dengan id kategori yang telah di-seed
