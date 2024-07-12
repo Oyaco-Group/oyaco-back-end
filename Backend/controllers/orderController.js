@@ -14,7 +14,7 @@ class OrderController {
       });
 
       res.status(201).json({
-        message: "Order Created Successfully",
+        message: "Order created successfully",
         data: order,
       });
     } catch (err) {
@@ -29,7 +29,7 @@ class OrderController {
       const orders = await OrderService.getOrder(page);
 
       res.status(200).json({
-        message: "success get all orders",
+        message: "Success get all orders",
         data: orders,
       });
     } catch (err) {
@@ -45,7 +45,7 @@ class OrderController {
       const order = await OrderService.getOneOrder(id);
 
       res.status(200).json({
-        message: "success get order",
+        message: "Success get order",
         data: order,
       });
     } catch (err) {
@@ -65,7 +65,7 @@ class OrderController {
       });
 
       res.status(200).json({
-        message: "success update order status",
+        message: "Success update order status",
         data: order,
       });
     } catch (err) {
@@ -88,7 +88,7 @@ class OrderController {
       });
 
       res.status(200).json({
-        message: "success update order",
+        message: "Success update order",
         data: order,
       });
     } catch (err) {
