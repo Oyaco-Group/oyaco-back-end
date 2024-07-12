@@ -9,6 +9,6 @@ router.use("/api/auth", authRoute);
 //router.use(authentication)
 router.use("/api/order", orderRoute);
 router.use("/api/categories", categoryRoutes);
-router.use("/api/warehouses", warehouseRoutes);
+router.use("/api/warehouse", warehouseRoutes);
 
 module.exports = router;
