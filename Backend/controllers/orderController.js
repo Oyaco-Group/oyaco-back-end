@@ -1,5 +1,6 @@
 const OrderService = require("../services/orderService");
 class OrderController {
+
   // admin create order
   static async createOrder(req, res, next) {
     try {
@@ -20,6 +21,7 @@ class OrderController {
       next(err);
     }
   }
+
   // admin get order
   static async getOrder(req, res, next) {
     try {
@@ -34,6 +36,7 @@ class OrderController {
       next(err);
     }
   }
+
   // admin get order by id
   static async getOneOrder(req, res, next) {
     try {
@@ -49,8 +52,7 @@ class OrderController {
       next(err);
     }
   }
-  // admin get nomor resi
-  // user get email and no resi
+  
   // user update status order
   static async updateOrderStatus(req, res, next) {
     try {
@@ -70,6 +72,7 @@ class OrderController {
       next(err);
     }
   }
+  
   // admin update order
   static async updateOrder(req, res, next) {
     try {
@@ -92,7 +95,7 @@ class OrderController {
       next(err);
     }
   }
-  
+
   // delete order
   static async deleteOrder(req, res, next) {
     try {
