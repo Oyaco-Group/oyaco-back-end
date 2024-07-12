@@ -18,14 +18,31 @@ class OrderServicer {
     return order;
   }
 
-  static async getOrder() {
-    const orders = await prisma.order.findMany()
+  static async getOrder(page) {
+    const limit = 5;
+    const skip = (page - 1) * limit;
+    const orders = await prisma.order.findMany({
+      take: limit,
+      skip: skip,
+    });
 
-    if (!orders){
-        throw { name: "notFound", message: "No orders found" };
+    if (!orders) {
+      throw { name: "notFound", message: "No orders found" };
     }
 
-    return orders
+    return orders;
+  }
+
+  static async getOneOrder(id) {
+    const order = await prisma.order.findUnique({
+      where: { id: parseInt(id) },
+    });
+
+    if (!order) {
+      throw { name: "notFound", message: "Order not found" };
+    }
+
+    return order;
   }
 }
 
