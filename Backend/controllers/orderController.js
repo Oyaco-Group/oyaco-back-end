@@ -92,6 +92,7 @@ class OrderController {
       next(err);
     }
   }
+
   // delete order
   static async deleteOrder(req, res, next) {
     try {
