@@ -80,7 +80,7 @@ model Warehouse {
 model Inventory {
   id                Int               @id @default(autoincrement())
   master_product_id Int
-  warehouse_id      Int               @unique
+  warehouse_id      Int               
   quantity          Int
   expiration_status Boolean
   isdelete          Boolean           @default(false)

@@ -29,14 +29,12 @@ class OrderController {
   }
   // admin get order
   static async getOrder(req, res, next) {
-    
-    const { page = 2, take = 5 } = req.query;
-    const skip = (page - 1) * take;
-
     try {
-      const orders = await OrderService.getOrder();
+      const page = req.query.page;
+      const orders = await OrderService.getOrder(page);
 
       res.status(200).json({
+        massage: "success get all orders",
         data: orders,
       });
     } catch (err) {
@@ -44,9 +42,20 @@ class OrderController {
     }
   }
   // admin get order by id
+  static async getOneOrder(req, res, next) {
+    try {
+      const {id} = req.params;
+
+      const order = await OrderService.getOneOrder(id);
+
+      res.status(200).json({
+        massage: "success get order",
+        data: order,
+      });
+    } catch (err) {}
+  }
   // admin get nomor resi
   // user get email and no resi
-  // user get order_item
   // user update order status
   // delete order
 }
