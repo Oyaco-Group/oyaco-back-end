@@ -37,7 +37,8 @@ model Order {
   complaint_id Int          @unique
   quantity     Int
   payment_type String
-  status       String
+  order_status String
+  buyer_status String
   created_at   DateTime     @default(now())
   updated_at   DateTime     @updatedAt
   user         User         @relation(fields: [user_id], references: [id], onUpdate: Cascade, onDelete: Cascade)
@@ -46,11 +47,12 @@ model Order {
 }
 
 model Complaint {
-  id         Int      @id @default(autoincrement())
-  text       String?
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
-  order      Order?
+  id          Int      @id @default(autoincrement())
+  iscomplaint Boolean
+  text        String?
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+  order       Order?
 }
 
 model order_item {
@@ -113,7 +115,7 @@ model ProductMovement {
 model MasterProduct {
   id               Int               @id @default(autoincrement())
   name             String
-  image            String? // Using String for image URL
+  image            String?
   sku              String
   price            String
   category_id      Int
