@@ -72,7 +72,7 @@ class OrderController {
       next(err);
     }
   }
-  
+
   // admin update order
   static async updateOrder(req, res, next) {
     try {
@@ -101,6 +101,7 @@ class OrderController {
     try {
       const { id } = req.params;
       await OrderService.deleteOrder(id);
+      console.log(id, '<<<<<<<<<<<<<<<<<<<<<<<<<<<<')
       res.status(200).json({
         message: "Successfully delete order",
       });
