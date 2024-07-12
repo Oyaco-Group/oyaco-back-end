@@ -29,6 +29,7 @@ class OrderController {
   }
   // admin get order
   static async getOrder(req, res, next) {
+    
     const { page = 2, take = 5 } = req.query;
     const skip = (page - 1) * take;
 
