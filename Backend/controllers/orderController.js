@@ -101,7 +101,6 @@ class OrderController {
     try {
       const { id } = req.params;
       await OrderService.deleteOrder(id);
-      console.log(id, '<<<<<<<<<<<<<<<<<<<<<<<<<<<<')
       res.status(200).json({
         message: "Successfully delete order",
       });
