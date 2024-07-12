@@ -18,12 +18,8 @@ class OrderServicer {
     return order;
   }
 
-  static async getOrder(pagination) {
-    const { take, skip } = pagination;
-    const orders = await prisma.order.findMany({
-      take: parseInt(take),
-      skip: parseInt(skip),
-    });
+  static async getOrder() {
+    const orders = await prisma.order.findMany()
 
     if (!orders){
         throw { name: "notFound", message: "No orders found" };

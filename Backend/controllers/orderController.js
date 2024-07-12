@@ -29,20 +29,14 @@ class OrderController {
   }
   // admin get order
   static async getOrder(req, res, next) {
-    const { page = 1, take = 5 } = req.query;
+    const { page = 2, take = 5 } = req.query;
     const skip = (page - 1) * take;
 
     try {
-      const orders = await OrderService.getOrder({
-        take,
-        skip,
-      });
+      const orders = await OrderService.getOrder();
 
       res.status(200).json({
-        totalItems: orders.count,
-        totalPages: Math.ceil(orders.count / limit),
-        currentPage: parseInt(page),
-        orders: orders.rows,
+        data: orders,
       });
     } catch (err) {
       next(err);
