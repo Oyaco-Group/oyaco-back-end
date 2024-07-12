@@ -35,7 +35,6 @@ model Order {
   id           Int          @id @default(autoincrement())
   user_id      Int
   complaint_id Int          @unique
-  quantity     Int
   payment_type String
   order_status String
   buyer_status String
@@ -81,7 +80,6 @@ model Warehouse {
 model Inventory {
   id                  Int               @id @default(autoincrement())
   master_product_id   Int
-  product_movement_id Int               @unique
   warehouse_id        Int               @unique
   stock               Int
   expiration_status   Boolean
@@ -98,6 +96,7 @@ model ProductMovement {
   id                Int           @id @default(autoincrement())
   user_id           Int
   master_product_id Int
+  inventory_id      Int
   movement_type     String
   origin            String
   destination       String
@@ -109,7 +108,7 @@ model ProductMovement {
   updated_at        DateTime      @updatedAt
   user              User          @relation(fields: [user_id], references: [id], onUpdate: Cascade, onDelete: Cascade)
   master_product    MasterProduct @relation(fields: [master_product_id], references: [id], onUpdate: Cascade, onDelete: Cascade)
-  inventory         Inventory     @relation(fields: [id], references: [product_movement_id], onUpdate: Cascade, onDelete: Cascade)
+  inventory         Inventory     @relation(fields: [inventory_id], references: [id], onUpdate: Cascade, onDelete: Cascade)
 }
 
 model MasterProduct {
