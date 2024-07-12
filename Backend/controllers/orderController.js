@@ -56,7 +56,6 @@ class OrderController {
   }
   // admin get nomor resi
   // user get email and no resi
-  // user get order_item
   // user update order status
   // delete order
 }
