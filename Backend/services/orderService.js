@@ -8,7 +8,6 @@ class OrderServicer {
     const order = await prisma.order.create({
       data: {
         user_id: user_id,
-        complaint_id: complaint_id,
         payment_type: payment_type,
         order_status: order_status,
         buyer_status: buyer_status,
@@ -43,6 +42,65 @@ class OrderServicer {
     }
 
     return order;
+  }
+
+  static async updateOrder(data) {
+    const { id, user_id, payment_type, order_status, buyer_status } = data;
+
+    const existOrder = await prisma.order.findUnique({
+      where: {id : parseInt(id)}
+    })
+    
+    if (!existOrder) {
+      throw { name: "failedToUpdate", message: "Order not found" };
+    }
+
+    const order = await prisma.order.update({
+      where: { id: parseInt(id) },
+      data: {
+        user_id: user_id,
+        payment_type: payment_type,
+        order_status: order_status,
+        buyer_status: buyer_status,
+      },
+    });
+
+    return order;
+  }
+
+  static async updateOrderStatus(data) {
+    const { id, order_status } = data;
+
+    const existOrder = await prisma.order.findUnique({
+      where: {id : parseInt(id)}
+    })
+    
+    if (!existOrder) {
+      throw { name: "failedToUpdate", message: "Order not found" };
+    }
+
+    const order = await prisma.order.update({
+      where: { id: parseInt(id) },
+      data: {
+        order_status: order_status,
+      },
+    });
+
+    return order;
+  }
+
+  static async deleteOrder(id) {
+    const existOrder = await prisma.order.findUnique({
+      where: {id : parseInt(id)}
+    })
+    
+    if (!existOrder) {
+      throw { name: "failedToDelete", message: "Order not found" };
+    }
+
+    const order = await prisma.order.delete({
+      where: { id: parseInt(id) },
+    });
   }
 }
 
