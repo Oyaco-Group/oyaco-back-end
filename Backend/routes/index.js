@@ -5,11 +5,13 @@ const orderRoute = require("./orderRoute.js");
 const { authentication, authorization } = require("../middleware/auth.js");
 const categoryRoutes = require("./categoryRoute.js");
 const warehouseRoutes = require("./warehouseRoute.js");
+const inventoryRoutes = require("./inventoryRoute.js")
 
 router.use("/api/auth", authRoute);
 //router.use(authentication)
 router.use("/api/order", orderRoute);
 router.use("/api/categories", categoryRoutes);
 router.use("/api/warehouses", warehouseRoutes);
+router.use("/api/inventory", inventoryRoutes);
 
 module.exports = router;
