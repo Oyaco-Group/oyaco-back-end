@@ -19,9 +19,9 @@ datasource db {
 model User {
   id               Int               @id @default(autoincrement())
   name             String
-  email            String
+  email            String            @unique
   address          String
-  password         String
+  password         String            @unique
   user_role        String
   image_url        String?
   isdelete         Boolean           @default(false)
@@ -34,24 +34,24 @@ model User {
 model Order {
   id           Int          @id @default(autoincrement())
   user_id      Int
-  complaint_id Int          @unique
   payment_type String
   order_status String
   buyer_status String
   created_at   DateTime     @default(now())
   updated_at   DateTime     @updatedAt
   user         User         @relation(fields: [user_id], references: [id], onUpdate: Cascade, onDelete: Cascade)
-  complaint    Complaint?   @relation(fields: [complaint_id], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  complaint    Complaint?
   order_item   order_item[]
 }
 
 model Complaint {
   id          Int      @id @default(autoincrement())
+  order_id    Int      @unique
   iscomplaint Boolean
   text        String?
   created_at  DateTime @default(now())
   updated_at  DateTime @updatedAt
-  order       Order?
+  order       Order?   @relation(fields: [order_id], references: [id], onUpdate: Cascade, onDelete: Cascade)
 }
 
 model order_item {
@@ -78,18 +78,18 @@ model Warehouse {
 }
 
 model Inventory {
-  id                  Int               @id @default(autoincrement())
-  master_product_id   Int
-  warehouse_id        Int               @unique
-  stock               Int
-  expiration_status   Boolean
-  isdelete            Boolean           @default(false)
-  created_at          DateTime          @default(now())
-  updated_at          DateTime          @updatedAt
-  warehouse           Warehouse         @relation(fields: [warehouse_id], references: [id], onUpdate: Cascade, onDelete: Cascade)
-  product_movement    ProductMovement[]
-  master_product      MasterProduct     @relation(fields: [master_product_id], references: [id], onUpdate: Cascade, onDelete: Cascade)
-  order_item          order_item[]
+  id                Int               @id @default(autoincrement())
+  master_product_id Int
+  warehouse_id      Int               
+  quantity          Int
+  expiration_status Boolean
+  isdelete          Boolean           @default(false)
+  created_at        DateTime          @default(now())
+  updated_at        DateTime          @updatedAt
+  warehouse         Warehouse         @relation(fields: [warehouse_id], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  product_movement  ProductMovement[]
+  master_product    MasterProduct     @relation(fields: [master_product_id], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  order_item        order_item[]
 }
 
 model ProductMovement {
@@ -115,7 +115,7 @@ model MasterProduct {
   id               Int               @id @default(autoincrement())
   name             String
   image            String?
-  sku              String
+  sku              String            @unique
   price            String
   category_id      Int
   isdelete         Boolean           @default(false)
