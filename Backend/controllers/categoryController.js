@@ -1,7 +1,7 @@
 const CategoryService = require("../services/categoryService.js");
 
 class CategoriesController {
-  static async getListCategories(req, res) {
+  static async getListCategories(req, res, next) {
     try {
       const categories = await CategoryService.getListCategories();
       res.status(200).json({
@@ -10,16 +10,11 @@ class CategoriesController {
         data: categories,
       });
     } catch (error) {
-      console.error(error);
-      res.status(500).json({
-        message: "Error retrieving categories",
-        status: 500,
-        error: error.message,
-      });
+      next(error);
     }
   }
 
-  static async create(req, res) {
+  static async create(req, res, next) {
     try {
       const { name } = req.body;
       const newCategory = await CategoryService.create(name);
@@ -29,16 +24,11 @@ class CategoriesController {
         data: newCategory,
       });
     } catch (error) {
-      console.error(error);
-      res.status(500).json({
-        message: "Error creating category",
-        status: 500,
-        error: error.message,
-      });
+      next(error);
     }
   }
 
-  static async edit(req, res) {
+  static async edit(req, res, next) {
     try {
       const { id } = req.params;
       const { name } = req.body;
@@ -49,16 +39,11 @@ class CategoriesController {
         data: updatedCategory,
       });
     } catch (error) {
-      console.error(error);
-      res.status(500).json({
-        message: "Error updating category",
-        status: 500,
-        error: error.message,
-      });
+      next(error);
     }
   }
 
-  static async delete(req, res) {
+  static async delete(req, res, next) {
     try {
       const { id } = req.params;
       await CategoryService.delete(id);
@@ -67,12 +52,7 @@ class CategoriesController {
         status: 200,
       });
     } catch (error) {
-      console.error(error);
-      res.status(500).json({
-        message: "Error deleting category",
-        status: 500,
-        error: error.message,
-      });
+      next(error);
     }
   }
 }
