@@ -1,9 +1,18 @@
 const prisma = require("../lib/prisma");
+const generateResiNumber = require('../lib/nodeMailer')
 
 class OrderServicer {
   static async createOrder(data) {
-    const { user_id, complaint_id, payment_type, order_status, buyer_status } =
+    const { admin_email, user_id, payment_type, order_status, buyer_status } =
       data;
+
+    const admin = await prisma.user.findUnique({
+      where: { email : admin_email },
+    });
+
+    if (!admin) {
+      throw { name: "unAuthorized", message: "Unauthorized user" };
+    }
 
     const order = await prisma.order.create({
       data: {
@@ -14,7 +23,9 @@ class OrderServicer {
       },
     });
 
-    return order;
+    const resiNumber = generateResiNumber(order);
+
+    return {order: order, admin: admin, resi: resiNumber};
   }
 
   static async getOrder(page) {

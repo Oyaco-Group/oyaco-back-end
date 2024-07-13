@@ -4,9 +4,10 @@ class OrderController {
   // admin create order
   static async createOrder(req, res, next) {
     try {
-      const { user_id, payment_type, order_status, buyer_status } = req.body;
+      const { admin_email ,user_id, payment_type, order_status, buyer_status } = req.body;
 
       const order = await OrderService.createOrder({
+        admin_email,
         user_id,
         payment_type,
         order_status,

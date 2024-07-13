@@ -19,9 +19,9 @@ datasource db {
 model User {
   id               Int               @id @default(autoincrement())
   name             String
-  email            String
+  email            String            @unique
   address          String
-  password         String
+  password         String            @unique
   user_role        String
   image_url        String?
   isdelete         Boolean           @default(false)
@@ -115,7 +115,7 @@ model MasterProduct {
   id               Int               @id @default(autoincrement())
   name             String
   image            String?
-  sku              String
+  sku              String            @unique
   price            String
   category_id      Int
   isdelete         Boolean           @default(false)
