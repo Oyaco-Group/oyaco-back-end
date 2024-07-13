@@ -1,7 +1,7 @@
-const WarehouseService = require("../services/warehouseService.js");
+const WarehouseService = require("../services/warehouseService");
 
 class WarehouseController {
-  static async getListWarehouse(req, res) {
+  static async getListWarehouse(req, res, next) {
     try {
       const warehouses = await WarehouseService.getListWarehouse();
       res.status(200).json({
@@ -10,16 +10,11 @@ class WarehouseController {
         data: warehouses,
       });
     } catch (error) {
-      console.error(error);
-      res.status(500).json({
-        message: "Error retrieving warehouses",
-        status: 500,
-        error: error.message,
-      });
+      next(error);
     }
   }
 
-  static async create(req, res) {
+  static async create(req, res, next) {
     try {
       const { name, location } = req.body;
       const newWarehouse = await WarehouseService.create(name, location);
@@ -29,16 +24,11 @@ class WarehouseController {
         data: newWarehouse,
       });
     } catch (error) {
-      console.error(error);
-      res.status(500).json({
-        message: "Error creating warehouse",
-        status: 500,
-        error: error.message,
-      });
+      next(error);
     }
   }
 
-  static async edit(req, res) {
+  static async edit(req, res, next) {
     try {
       const { id } = req.params;
       const { name, location } = req.body;
@@ -49,16 +39,11 @@ class WarehouseController {
         data: updatedWarehouse,
       });
     } catch (error) {
-      console.error(error);
-      res.status(500).json({
-        message: "Error updating warehouse",
-        status: 500,
-        error: error.message,
-      });
+      next(error);
     }
   }
 
-  static async delete(req, res) {
+  static async delete(req, res, next) {
     try {
       const { id } = req.params;
       await WarehouseService.delete(id);
@@ -67,12 +52,7 @@ class WarehouseController {
         status: 200,
       });
     } catch (error) {
-      console.error(error);
-      res.status(500).json({
-        message: "Error deleting warehouse",
-        status: 500,
-        error: error.message,
-      });
+      next(error);
     }
   }
 }
