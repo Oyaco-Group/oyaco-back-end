@@ -1,24 +1,52 @@
 const prisma = require("../lib/prisma");
 
 class OrderItemServicer {
-  static async createItemOrder(data) {
-    const { admin_email, user_id, payment_type, order_status, buyer_status } =
-      data;
+  static async createOrderItem(data) {
+    const { order_id, master_product_id, inventory_id, quantity } = data;
 
-    const orderItem = await prisma.order_item.create({
-      data: {
-        user_id: user_id,
-        payment_type: payment_type,
-        order_status: order_status,
-        buyer_status: buyer_status,
+    if (!order_id || !master_product_id || !inventory_id || !quantity) {
+      throw { name: "invalidInput", message: "All fields are required" };
+    }
+
+    const inventoryItem = await prisma.inventory.findUnique({
+      where: {
+        id: parseInt(inventory_id),
+        master_product_id: parseInt(master_product_id),
       },
     });
 
+    if (
+      inventoryItem.id !== inventory_id &&
+      inventoryItem.master_product_id !== master_product_id
+    ) {
+      throw { name: "invalidInput", message: "Product not match" };
+    }else if (inventoryItem.quantity < quantity){
+      throw { name: "invalidInput", message: "Product quantity not enough" };
+    }
 
-    return orderItem;
+    const orderItem = await prisma.order_item.create({
+      data: {
+        order_id: order_id,
+        master_product_id: master_product_id,
+        inventory_id: inventory_id,
+        quantity: quantity,
+      },
+    });
+
+    const updateInventory = await prisma.inventory.update({
+      where: { id: parseInt(inventoryItem.id) },
+      data: {
+        master_product_id: inventoryItem.master_product_id,
+        wawrehouse_id: inventoryItem.wawrehouse_id,
+        quantity: inventoryItem.quantity - quantity,
+        expiration_status: inventoryItem.expiration_status
+      },
+    })
+
+    return {orderItem, updateInventory};
   }
 
-  static async getItemOrder(page) {
+  static async getOrderItem(page) {
     const limit = 5;
     const skip = (page - 1) * limit;
     const orderItem = await prisma.order_item.findMany({
@@ -27,60 +55,110 @@ class OrderItemServicer {
     });
 
     if (!orderItem) {
-      throw { name: "notFound", message: "No orders found" };
+      throw { name: "notFound", message: "No orders item found" };
     }
 
     return orderItem;
   }
 
-  static async getOneOrderItem(id) {
+  static async getOneOrderItem(order_id) {
     const orderItem = await prisma.order_item.findUnique({
-      where: { id: parseInt(id) },
+      where: { order_id : parseInt(order_id) },
     });
 
     if (!orderItem) {
-      throw { name: "notFound", message: "Order not found" };
+      throw { name: "notFound", message: "Order item not found" };
     }
 
     return orderItem;
   }
 
   static async updateOrderItem(data) {
-    const { id, user_id, payment_type, order_status, buyer_status } = data;
+    const { order_id, master_product_id, inventory_id, quantity } = data;
 
-    const existOrderItem = await prisma.order.findUnique({
-      where: {id : parseInt(id)}
-    })
-    
-    if (!existOrderItem) {
-      throw { name: "failedToUpdate", message: "Order not found" };
+    if (!order_id || !master_product_id || !inventory_id || !quantity) {
+      throw { name: "invalidInput", message: "All fields are required" };
+    }
+
+    const inventoryItem = await prisma.inventory.findUnique({
+      where: {
+        id: parseInt(inventory_id),
+        master_product_id: parseInt(master_product_id),
+      },
+    });
+
+    if (
+      inventoryItem.id !== inventory_id &&
+      inventoryItem.master_product_id !== master_product_id
+    ) {
+      throw { name: "invalidInput", message: "Product not match" };
+    }else if (inventoryItem.quantity < quantity){
+      throw { name: "invalidInput", message: "Product quantity not enough" };
     }
 
     const orderItem = await prisma.order_item.update({
       where: { id: parseInt(id) },
       data: {
-        user_id: user_id,
-        payment_type: payment_type,
-        order_status: order_status,
-        buyer_status: buyer_status,
+        order_id: order_id,
+        master_product_id: master_product_id,
+        inventory_id: inventory_id,
+        quantity: quantity,
       },
     });
 
-    return orderItem;
+    const updateInventory = await prisma.inventory.update({
+      where: { id: parseInt(inventoryItem.id) },
+      data: {
+        master_product_id: inventoryItem.master_product_id,
+        wawrehouse_id: inventoryItem.wawrehouse_id,
+        quantity: inventoryItem.quantity - quantity,
+        expiration_status: inventoryItem.expiration_status
+      },
+    })
+
+    return {orderItem, updateInventory};
   }
 
   static async deleteOrderItem(id) {
     const existOrderItem = await prisma.order_item.findUnique({
-      where: {id : parseInt(id)}
-    })
-    
+      where: { id: parseInt(id) },
+    });
+
     if (!existOrderItem) {
       throw { name: "failedToDelete", message: "Order not found" };
     }
 
+    const inventoryItem = await prisma.inventory.findUnique({
+      where: {
+        id: parseInt(existOrderItem.inventory_id),
+        master_product_id: parseInt(existOrderItem.master_product_id),
+      },
+    })
+
+    if (
+      inventoryItem.id !== inventory_id &&
+      inventoryItem.master_product_id !== master_product_id
+    ) {
+      throw { name: "invalidInput", message: "Product not match" };
+    }else if (inventoryItem.quantity < quantity){
+      throw { name: "invalidInput", message: "Product quantity not enough" };
+    }
+
+    const updateInventory = await prisma.inventory.update({
+      where: { id: parseInt(inventoryItem.id) },
+      data: {
+        master_product_id: inventoryItem.master_product_id,
+        wawrehouse_id: inventoryItem.wawrehouse_id,
+        quantity: inventoryItem.quantity + existOrderItem.quantity,
+        expiration_status: inventoryItem.expiration_status
+      },
+    })
+
     const orderItem = await prisma.order.delete({
       where: { id: parseInt(id) },
     });
+
+    return updateInventory
   }
 }
 
