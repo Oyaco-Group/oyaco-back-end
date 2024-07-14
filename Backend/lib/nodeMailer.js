@@ -1,4 +1,4 @@
-const nodeMailer = require('nodemailer')
+const nodeMailer = require("nodemailer");
 
 // admin generate nomor resi
 const generateResiNumber = (order) => {
@@ -19,27 +19,27 @@ const padNumber = (num) => {
   return num.toString().padStart(2, "0");
 };
 
-// user get email and no resi
-// Fungsi untuk mengirim email kepada pembeli
-const sendEmailToBuyer = async (emailAdmin, emailUser, resi) => {
+const sendEmailToBuyer = async (
+  admin_email,
+  admin_email_password,
+  user_email,
+  resiNumber
+) => {
   try {
-    // Konfigurasi transporter untuk mengirim email menggunakan SMTP
     let transporter = nodeMailer.createTransport({
-      host: emailAdmin, // Ganti dengan host SMTP yang sesuai
-      port: 587,
-      secure: false, // true untuk menggunakan TLS; false untuk plain SMTP
+      service: 'gmail',
       auth: {
-        user: emailAdmin, // Ganti dengan email pengirim
-        pass: emailAdmin, // Ganti dengan password email pengirim
+        user: admin_email, // Ganti dengan email pengirim
+        pass: admin_email_password, // Ganti dengan password email pengirim
       },
     });
 
     // Konten email
     let mailOptions = {
-      from: emailAdmin,
-      to: emailUser,
+      from: admin_email,
+      to: user_email,
       subject: "Your Order has been Shipped",
-      text: `Dear Customer,\n\nYour order has been shipped. Tracking number: ${resi}\n\nBest Regards,\n${emailAdmin}`,
+      text: `Dear Customer,\n\nYour order has been shipped. Tracking number: ${resiNumber}\n\nBest Regards,\n${admin_email}`,
     };
 
     // Kirim email
@@ -47,12 +47,13 @@ const sendEmailToBuyer = async (emailAdmin, emailUser, resi) => {
 
     console.log(`Email sent: ${info.messageId}`);
     console.log("Email sent successfully");
+    return info.messageId
   } catch (error) {
     console.error("Failed to send email:", error);
   }
 };
 
-module.exports = {generateResiNumber, sendEmailToBuyer};
+module.exports = { generateResiNumber, sendEmailToBuyer };
 
 // Contoh penggunaan:
 // const order = {

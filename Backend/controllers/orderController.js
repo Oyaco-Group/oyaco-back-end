@@ -4,10 +4,11 @@ class OrderController {
   // admin create order
   static async createOrder(req, res, next) {
     try {
-      const { admin_email ,user_id, payment_type, order_status, buyer_status } = req.body;
+      const { admin_email, admin_email_password, user_id, payment_type, order_status, buyer_status } = req.body;
 
-      const order = await OrderService.createOrder({
+      const orderData = await OrderService.createOrder({
         admin_email,
+        admin_email_password,
         user_id,
         payment_type,
         order_status,
@@ -16,7 +17,7 @@ class OrderController {
 
       res.status(201).json({
         message: "Order created successfully",
-        data: order,
+        data: orderData,
       });
     } catch (err) {
       next(err);
