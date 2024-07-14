@@ -17,10 +17,9 @@ class TransService {
 
       let originWarehouseId = null;
       let productMovementOut = null;
+      let productMovementIn = null; // Define productMovementIn here
 
- 
       if (origin !== "Supplier") {
-
         const originWarehouse = await prisma.warehouse.findFirst({
           where: { name: origin },
         });
@@ -31,7 +30,6 @@ class TransService {
 
         originWarehouseId = originWarehouse.id;
 
-        // Get origin inventory
         let originInventory = await prisma.inventory.findFirst({
           where: {
             master_product_id: master_product_id,
@@ -43,7 +41,6 @@ class TransService {
           throw new Error(`Inventory for product ${master_product_id} in warehouse ${originWarehouseId} not found`);
         }
 
-        // Create product movement for 'Out'
         productMovementOut = await prisma.productMovement.create({
           data: {
             user_id,
@@ -59,7 +56,6 @@ class TransService {
           },
         });
 
-        // Update the origin warehouse inventory
         await prisma.inventory.update({
           where: {
             id: originInventory.id,
@@ -70,66 +66,80 @@ class TransService {
             },
           },
         });
-      }
-
-      // Get destination warehouse details
-      const destinationWarehouse = await prisma.warehouse.findFirst({
-        where: { name: destination },
-      });
-
-      if (!destinationWarehouse) {
-        throw new Error(`Warehouse with name ${destination} not found`);
-      }
-
-      const destinationWarehouseId = destinationWarehouse.id;
-
-      // Get or create destination inventory
-      let destinationInventory = await prisma.inventory.findFirst({
-        where: {
-          master_product_id: master_product_id,
-          warehouse_id: destinationWarehouseId,
-        },
-      });
-
-      if (!destinationInventory) {
-        destinationInventory = await prisma.inventory.create({
+      } else {
+        // Handling case where origin is "Supplier" without warehouse creation
+        productMovementOut = await prisma.productMovement.create({
           data: {
-            master_product_id: master_product_id,
-            warehouse_id: destinationWarehouseId,
-            quantity: 0,
-            expiration_status: false,
-            isdelete: false,
+            user_id,
+            master_product_id,
+            inventory_id: inventory_id, // Assuming you have a way to determine this
+            movement_type: "Out",
+            origin,
+            destination,
+            quantity,
+            iscondition_good,
+            arrival_date,
+            expiration_date,
           },
         });
       }
 
-      // Create product movement for 'In'
-      const productMovementIn = await prisma.productMovement.create({
-        data: {
-          user_id,
-          master_product_id,
-          inventory_id: destinationInventory.id,
-          movement_type: "In",
-          origin,
-          destination,
-          quantity,
-          iscondition_good,
-          arrival_date,
-          expiration_date,
-        },
-      });
+      if (destination !== "Customer") {
+        const destinationWarehouse = await prisma.warehouse.findFirst({
+          where: { name: destination },
+        });
 
-      // Update the destination warehouse inventory
-      await prisma.inventory.update({
-        where: {
-          id: destinationInventory.id,
-        },
-        data: {
-          quantity: {
-            increment: quantity,
+        if (!destinationWarehouse) {
+          throw new Error(`Warehouse with name ${destination} not found`);
+        }
+
+        const destinationWarehouseId = destinationWarehouse.id;
+
+        let destinationInventory = await prisma.inventory.findFirst({
+          where: {
+            master_product_id: master_product_id,
+            warehouse_id: destinationWarehouseId,
           },
-        },
-      });
+        });
+
+        if (!destinationInventory) {
+          destinationInventory = await prisma.inventory.create({
+            data: {
+              master_product_id: master_product_id,
+              warehouse_id: destinationWarehouseId,
+              quantity: 0,
+              expiration_status: false,
+              isdelete: false,
+            },
+          });
+        }
+
+        productMovementIn = await prisma.productMovement.create({
+          data: {
+            user_id,
+            master_product_id,
+            inventory_id: destinationInventory.id,
+            movement_type: "In",
+            origin,
+            destination,
+            quantity,
+            iscondition_good,
+            arrival_date,
+            expiration_date,
+          },
+        });
+
+        await prisma.inventory.update({
+          where: {
+            id: destinationInventory.id,
+          },
+          data: {
+            quantity: {
+              increment: quantity,
+            },
+          },
+        });
+      }
 
       return { productMovementOut, productMovementIn };
     });
