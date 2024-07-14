@@ -40,8 +40,8 @@ class OrderItemController {
   // admin get order by id
   static async getOneOrderItem(req, res, next) {
     try {
-      const { order_id } = req.params;
-
+      const {order_id} = req.params;
+      
       const orderItem = await OrderItemService.getOneOrderItem(order_id);
 
       res.status(200).json({
@@ -60,6 +60,7 @@ class OrderItemController {
       const { order_id, master_product_id, inventory_id, quantity } = req.body;
 
       const orderItem = await OrderItemService.updateOrderItem({
+        id,
         order_id,
         master_product_id,
         inventory_id,
