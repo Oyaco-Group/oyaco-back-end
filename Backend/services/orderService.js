@@ -1,13 +1,19 @@
 const prisma = require("../lib/prisma");
-const generateResiNumber = require('../lib/nodeMailer')
+const { generateResiNumber, sendEmailToBuyer } = require("../lib/nodeMailer");
 
 class OrderServicer {
   static async createOrder(data) {
-    const { admin_email, user_id, payment_type, order_status, buyer_status } =
-      data;
+    const {
+      admin_email,
+      admin_email_password,
+      user_id,
+      payment_type,
+      order_status,
+      buyer_status,
+    } = data;
 
     const admin = await prisma.user.findUnique({
-      where: { email : admin_email },
+      where: { email: admin_email },
     });
 
     if (!admin) {
@@ -23,9 +29,32 @@ class OrderServicer {
       },
     });
 
-    const resiNumber = generateResiNumber(order);
+    const user = await prisma.user.findUnique({
+      where: { id: user_id },
+    });
 
-    return {order: order, admin: admin, resi: resiNumber};
+    const user_email = user.email;
+
+    const resiNumber = generateResiNumber(order);
+    const emailInfo = sendEmailToBuyer(
+      admin_email,
+      admin_email_password,
+      user_email,
+      resiNumber
+    );
+
+    async function getData(emailInfo) {
+      try {
+        let result = await emailInfo;
+        return result 
+      } catch (error) {
+        console.log(error);
+      }
+    }
+
+    const infoMessageId = await getData(emailInfo)
+
+    return { order: order, admin: admin, resi: resiNumber, info: infoMessageId};
   }
 
   static async getOrder(page) {
@@ -59,9 +88,9 @@ class OrderServicer {
     const { id, user_id, payment_type, order_status, buyer_status } = data;
 
     const existOrder = await prisma.order.findUnique({
-      where: {id : parseInt(id)}
-    })
-    
+      where: { id: parseInt(id) },
+    });
+
     if (!existOrder) {
       throw { name: "failedToUpdate", message: "Order not found" };
     }
@@ -83,9 +112,9 @@ class OrderServicer {
     const { id, order_status } = data;
 
     const existOrder = await prisma.order.findUnique({
-      where: {id : parseInt(id)}
-    })
-    
+      where: { id: parseInt(id) },
+    });
+
     if (!existOrder) {
       throw { name: "failedToUpdate", message: "Order not found" };
     }
@@ -102,9 +131,9 @@ class OrderServicer {
 
   static async deleteOrder(id) {
     const existOrder = await prisma.order.findUnique({
-      where: {id : parseInt(id)}
-    })
-    
+      where: { id: parseInt(id) },
+    });
+
     if (!existOrder) {
       throw { name: "failedToDelete", message: "Order not found" };
     }
