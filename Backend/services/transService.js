@@ -17,7 +17,7 @@ class TransService {
 
       let originWarehouseId = null;
       let productMovementOut = null;
-      let productMovementIn = null; // Define productMovementIn here
+      let productMovementIn = null;
 
       if (origin !== "Supplier") {
         const originWarehouse = await prisma.warehouse.findFirst({
@@ -67,12 +67,11 @@ class TransService {
           },
         });
       } else {
-        // Handling case where origin is "Supplier" without warehouse creation
         productMovementOut = await prisma.productMovement.create({
           data: {
             user_id,
             master_product_id,
-            inventory_id: inventory_id, // Assuming you have a way to determine this
+            inventory_id: inventory_id,
             movement_type: "Out",
             origin,
             destination,
