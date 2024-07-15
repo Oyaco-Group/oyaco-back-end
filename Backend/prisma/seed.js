@@ -54,6 +54,7 @@ async function main() {
         name: "VGA",
         image: "https://example.com/product1.jpg",
         sku: "SKU-001",
+        slugify : "VGA",
         price: "100",
         category_id: 1, // Pastikan category_id sesuai dengan id kategori yang telah di-seed
         isdelete: false,

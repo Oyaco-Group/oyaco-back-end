@@ -116,6 +116,7 @@ model MasterProduct {
   name             String
   image            String?
   sku              String
+  slugify          String
   price            String
   category_id      Int
   isdelete         Boolean           @default(false)

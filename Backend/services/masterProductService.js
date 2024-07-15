@@ -1,4 +1,6 @@
+const { default: slugify } = require("slugify");
 const prisma = require("../lib/prisma");
+const slug = require("slugify");
 
 class MasterProductService {
     static async getListProduct(params) {
@@ -28,9 +30,15 @@ class MasterProductService {
         return product;
     }
 
-    static async getProductByName({params}) {
-        const product = await prisma.masterProduct.findFirst({
-            where : {params}
+    static async getProductByName(params) {
+        const lowerCaseName = params.toLowerCase();
+        const slug = slugify(lowerCaseName,'-');
+        const product = await prisma.masterProduct.findMany({
+            where : {
+                slugify : {
+                    contains : slug
+                }
+            }
         })
         return product;
     }
@@ -63,12 +71,16 @@ class MasterProductService {
         })
         if(existingProduct) throw({name : 'failedToCreate', message : 'Product has been Existed'});
         const isdeleteBoolean = isdelete === "true";
+        const lowerCaseName = name.toLowerCase();
+        const slugify = slug(lowerCaseName,'-');
+        console.log(slugify);
         const product = await prisma.masterProduct.create({
             data : {
                 name,
                 sku,
                 price : price,
                 isdelete : isdeleteBoolean,
+                slugify,
                 category : {
                     connect : {
                         id : +category_id
@@ -88,6 +100,8 @@ class MasterProductService {
             isdelete
         } = params;
         const isdeleteBoolean = isdelete === "true";
+        const lowerCaseName = name.toLowerCase();
+        const slugify = slug(lowerCaseName,'-');
         const existingProduct = await prisma.masterProduct.findUnique({
             where : {
                 id : +id
@@ -103,6 +117,7 @@ class MasterProductService {
                 category_id : +category_id,
                 price,
                 sku,
+                slugify,
                 isdelete : isdeleteBoolean
             }
         })

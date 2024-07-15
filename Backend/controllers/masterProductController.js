@@ -32,7 +32,7 @@ class MasterProductController {
     static async getProductByName (req,res,next) {
         try {
             const {name} = req.params;
-            const product = await MasterProductService.getProductByName({name});
+            const product = await MasterProductService.getProductByName(name);
             res.status(200).json({
                 message : 'Success',
                 data : product
