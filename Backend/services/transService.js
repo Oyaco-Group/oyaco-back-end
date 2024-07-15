@@ -71,7 +71,7 @@ class TransService {
           data: {
             user_id,
             master_product_id,
-            inventory_id: inventory_id,
+            inventory_id: inventory_id || null, // Use inventory_id if provided, else null
             movement_type: "Out",
             origin,
             destination,
@@ -140,7 +140,10 @@ class TransService {
         });
       }
 
-      return { productMovementOut, productMovementIn };
+      return { 
+        productMovementOut: origin === "Supplier" ? null : productMovementOut, 
+        productMovementIn 
+      };
     });
   }
 }
