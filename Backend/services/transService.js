@@ -71,7 +71,7 @@ class TransService {
           data: {
             user_id,
             master_product_id,
-            inventory_id: inventory_id || null, // Use inventory_id if provided, else null
+            inventory_id: inventory_id || null,
             movement_type: "Out",
             origin,
             destination,
