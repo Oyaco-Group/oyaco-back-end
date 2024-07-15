@@ -1,24 +1,10 @@
 const prisma = require("../lib/prisma");
 const { generateResiNumber, sendEmailToBuyer } = require("../lib/nodeMailer");
+const { updateOrderStatus } = require("../lib/statusUpdater");
 
 class OrderServicer {
   static async createOrder(data) {
-    const {
-      admin_email,
-      admin_email_password,
-      user_id,
-      payment_type,
-      order_status,
-      buyer_status,
-    } = data;
-
-    const admin = await prisma.user.findUnique({
-      where: { email: admin_email },
-    });
-
-    if (!admin) {
-      throw { name: "unAuthorized", message: "Unauthorized user" };
-    }
+    const { user_id, payment_type, order_status, buyer_status } = data;
 
     const order = await prisma.order.create({
       data: {
@@ -36,40 +22,45 @@ class OrderServicer {
     const user_email = user.email;
 
     const resiNumber = generateResiNumber(order);
-    const emailInfo = sendEmailToBuyer(
-      admin_email,
-      admin_email_password,
-      user_email,
-      resiNumber
-    );
+    const emailInfo = sendEmailToBuyer(user_email, resiNumber);
 
     async function getData(emailInfo) {
       try {
         let result = await emailInfo;
-        return result 
+        return result;
       } catch (error) {
         console.log(error);
       }
     }
 
-    const infoMessageId = await getData(emailInfo)
+    const infoMessageId = await getData(emailInfo);
 
-    return { order: order, admin: admin, resi: resiNumber, info: infoMessageId};
+    // Tentukan waktu untuk memanggil updateOrderStatus
+    const scheduledTime = new Date(order.created_at.getTime() + 1 * 60 * 1000); // 1 menit setelah pembuatan order
+
+    // Jadwalkan pemanggilan updateOrderStatus menggunakan setTimeout
+    const delay = scheduledTime - new Date();
+    setTimeout(async () => {
+      console.log("Running order status update job...");
+      await updateOrderStatus(order.id);
+    }, delay);
+
+    return { order: order, resi: resiNumber, info: infoMessageId };
   }
 
-  static async getOrder(page) {
-    const limit = 5;
-    const skip = (page - 1) * limit;
+  static async getOrder(skip, take) {
     const orders = await prisma.order.findMany({
-      take: limit,
       skip: skip,
+      take: take,
     });
+
+    const totalOrders = await prisma.order.count();
 
     if (!orders) {
       throw { name: "notFound", message: "No orders found" };
     }
 
-    return orders;
+    return { orders, totalOrders };
   }
 
   static async getOneOrder(id) {

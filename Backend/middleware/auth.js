@@ -5,9 +5,9 @@ const authentication = async (req, res, next) => {
   try {
     const token = req.headers.authorization?.split(" ")[1];
 
-    if (!token) throw { name: "unAuthicated", message: "User Unauthicated" };
+    if (!token) throw { name: "unAuthenticated", message: "User Unauthenticated" };
 
-    const user = await verifyToken(token);
+    const user = verifyToken(token);
 
     req.user = {
       id: user.id,

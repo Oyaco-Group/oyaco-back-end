@@ -20,8 +20,6 @@ const padNumber = (num) => {
 };
 
 const sendEmailToBuyer = async (
-  admin_email,
-  admin_email_password,
   user_email,
   resiNumber
 ) => {
@@ -29,17 +27,17 @@ const sendEmailToBuyer = async (
     let transporter = nodeMailer.createTransport({
       service: 'gmail',
       auth: {
-        user: admin_email, // Ganti dengan email pengirim
-        pass: admin_email_password, // Ganti dengan password email pengirim
+        user: 'hehebimbi009@gmail.com', // Ganti dengan email pengirim
+        pass: 'kjdd kvps yfve wely', // Ganti dengan password email pengirim
       },
     });
 
     // Konten email
     let mailOptions = {
-      from: admin_email,
+      from: 'hehebimbi009@gmail.com',
       to: user_email,
       subject: "Your Order has been Shipped",
-      text: `Dear Customer,\n\nYour order has been shipped. Tracking number: ${resiNumber}\n\nBest Regards,\n${admin_email}`,
+      text: `Dear Customer,\n\nYour order is being prepared. Tracking number: ${resiNumber}\n\nBest Regards, Oyaco`,
     };
 
     // Kirim email
@@ -55,16 +53,3 @@ const sendEmailToBuyer = async (
 
 module.exports = { generateResiNumber, sendEmailToBuyer };
 
-// Contoh penggunaan:
-// const order = {
-//   id: 1001,
-//   user_id: 123,
-//   created_at: new Date("2024-07-13T10:00:00Z"),
-// };
-
-// const resiNumber = generateResiNumber(order);
-// const emailAdmin = "admin@example.com";
-// const emailUser = "user@example.com";
-
-// // Mengirim email kepada pembeli
-// sendEmailToBuyer(emailAdmin, emailUser, resiNumber);
