@@ -14,6 +14,12 @@ class WarehouseService {
   }
 
   static async create(name, location) {
+    const existingWarehouse = await prisma.warehouse.findFirst({
+      where: { name },
+    });
+    if (existingWarehouse)
+      throw { name: "exist", message: "Warehouse already exists" };
+
     const newWarehouse = await prisma.warehouse.create({
       data: {
         name: name,

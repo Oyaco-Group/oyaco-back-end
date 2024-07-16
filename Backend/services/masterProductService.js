@@ -184,6 +184,4 @@ class MasterProductService {
 
 }
 
-
-
 module.exports = MasterProductService;

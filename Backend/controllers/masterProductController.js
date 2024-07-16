@@ -33,6 +33,7 @@ class MasterProductController {
         try {
             const {name} = req.params;
             const product = await MasterProductService.getProductByName(name);
+
             res.status(200).json({
                 message : 'Success',
                 data : product
@@ -74,6 +75,7 @@ class MasterProductController {
             const {id} = req.params;
             const image = req.file.path;
             const params = {...req.body, id, image};
+          
             const product = await MasterProductService.editProduct(params);
             res.status(200).json({
                 message : 'Master Produt is Successfully Updated',

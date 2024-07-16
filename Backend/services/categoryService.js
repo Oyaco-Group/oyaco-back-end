@@ -12,6 +12,12 @@ class CategoryService {
   }
 
   static async create(name) {
+    const existingCategory = await prisma.Category.findFirst({
+      where: { name },
+    });
+    if (existingCategory)
+      throw { name: "exist", message: "Category already exists" };
+
     const newCategory = await prisma.Category.create({
       data: { name: name },
     });
