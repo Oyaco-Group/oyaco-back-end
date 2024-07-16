@@ -15,6 +15,15 @@ class TransService {
         expiration_date,
       } = data;
 
+      const masterProduct = await prisma.masterProduct.findFirst({
+        where: { id: master_product_id },
+      });
+
+      if (!masterProduct) {
+        const errorMessage = `Product with master_product_id ${master_product_id} does not exist`;
+        throw { name: "notFound", message: errorMessage };
+      }
+
       let originWarehouseId = null;
       let productMovementOut = null;
       let productMovementIn = null;
@@ -25,7 +34,8 @@ class TransService {
         });
 
         if (!originWarehouse) {
-          throw { name: "invalidInput", message: `Invalid origin input` };
+          const errorMessage = `Invalid origin input`;
+          throw { name: "invalidInput", message: errorMessage };
         }
 
         originWarehouseId = originWarehouse.id;
@@ -38,16 +48,18 @@ class TransService {
         });
 
         if (!originInventory) {
+          const errorMessage = `Cannot find product with master_product_id ${master_product_id} in warehouse ${originWarehouseId}`;
           throw {
             name: "notFound",
-            message: `Cannot find product with master product id ${master_product_id} in warehouse ${originWarehouseId}`,
+            message: errorMessage,
           };
         }
 
         if (originInventory.quantity < quantity) {
+          const errorMessage = `Not enough stock for product with master_product_id ${master_product_id} in warehouse ${originWarehouseId}`;
           throw {
             name: "exist",
-            message: `Not enough stock for product with master product id ${master_product_id} in warehouse ${originWarehouseId}`,
+            message: errorMessage,
           };
         }
 
@@ -85,9 +97,10 @@ class TransService {
         });
 
         if (!destinationWarehouse) {
+          const errorMessage = `Destination ${destination} does not exist`;
           throw {
             name: "notFound",
-            message: `Destination ${destination} does not exist`,
+            message: errorMessage,
           };
         }
 
