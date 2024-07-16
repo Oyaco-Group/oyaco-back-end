@@ -13,13 +13,8 @@ router.use("/api/auth", authRoute);
 //router.use(authentication);
 router.use("/api/user",userRoute);
 router.use("/api/order", orderRoute);
-<<<<<<< HEAD
-router.use("/api/masterProduct",masterProductRoutes);
-router.use("/api/orderitem", orderItemRoute);
-=======
 router.use("/api/orderitem", orderItemRoute);
 router.use("/api/masterProduct",masterProductRoutes);
->>>>>>> 74035b9421fd07692b50186d30fda994783bc9db
 router.use("/api/categories", categoryRoutes);
 router.use("/api/warehouses", warehouseRoutes);
 
