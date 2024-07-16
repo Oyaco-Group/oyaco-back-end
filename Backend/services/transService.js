@@ -26,7 +26,6 @@ class TransService {
 
         if (!originWarehouse) {
           throw { name: "invalidInput", message: `Invalid origin input` };
-          // throw new Error(`Warehouse with name ${origin} not found`);
         }
 
         originWarehouseId = originWarehouse.id;
@@ -41,11 +40,8 @@ class TransService {
         if (!originInventory) {
           throw {
             name: "notFound",
-            message: `Product with master product id ${master_product_id} is not found in origin warehouse`,
+            message: `Cannot find product with master product id ${master_product_id} in warehouse ${originWarehouseId}`,
           };
-          // throw new Error(
-          //   `Inventory for product ${master_product_id} in warehouse ${originWarehouseId} not found`
-          // );
         }
 
         if (originInventory.quantity < quantity) {
@@ -53,9 +49,6 @@ class TransService {
             name: "exist",
             message: `Not enough stock for product with master product id ${master_product_id} in warehouse ${originWarehouseId}`,
           };
-          // throw new Error(
-          //   `Not enough stock for product ${master_product_id} in warehouse ${originWarehouseId}`
-          // );
         }
 
         productMovementOut = await prisma.productMovement.create({
@@ -84,21 +77,6 @@ class TransService {
             isdelete: originInventory.quantity - quantity <= 0 ? true : false,
           },
         });
-      } else {
-        productMovementOut = await prisma.productMovement.create({
-          data: {
-            user_id,
-            master_product_id,
-            inventory_id: inventory_id || null,
-            movement_type: "Out",
-            origin,
-            destination,
-            quantity,
-            iscondition_good,
-            arrival_date,
-            expiration_date,
-          },
-        });
       }
 
       if (destination !== "Customer") {
@@ -109,9 +87,8 @@ class TransService {
         if (!destinationWarehouse) {
           throw {
             name: "notFound",
-            message: `Destination ${destination} is not available`,
+            message: `Destination ${destination} does not exist`,
           };
-          // throw new Error(`Warehouse with name ${destination} not found`);
         }
 
         const destinationWarehouseId = destinationWarehouse.id;
