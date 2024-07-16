@@ -4,6 +4,7 @@ const dotenv = require("dotenv");
 const router = require("./routes");
 const cors = require("cors");
 const errorHandler = require("./middleware/errorHandler");
+const multerErrorHandler = require("./middleware/multerError");
 
 
 dotenv.config();
@@ -14,7 +15,8 @@ const port = process.env.PORT;
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(router);
-app.use(errorHandler)
+app.use(multerErrorHandler);
+app.use(errorHandler);
 
 app.listen(port, () => {
   console.log(`Example app listening on port ${port}`);
