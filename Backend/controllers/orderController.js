@@ -1,13 +1,11 @@
 const OrderService = require("../services/orderService");
 class OrderController {
-
   // admin create order
   static async createOrder(req, res, next) {
     try {
-      const { admin_email ,user_id, payment_type, order_status, buyer_status } = req.body;
+      const { user_id, payment_type, order_status, buyer_status } = req.body;
 
-      const order = await OrderService.createOrder({
-        admin_email,
+      const orderData = await OrderService.createOrder({
         user_id,
         payment_type,
         order_status,
@@ -16,7 +14,7 @@ class OrderController {
 
       res.status(201).json({
         message: "Order created successfully",
-        data: order,
+        data: orderData,
       });
     } catch (err) {
       next(err);
@@ -26,12 +24,22 @@ class OrderController {
   // admin get order
   static async getOrder(req, res, next) {
     try {
-      const page = req.query.page;
-      const orders = await OrderService.getOrder(page);
+      const page = parseInt(req.query.page) || 1;
+      const pageSize = parseInt(req.query.pageSize) || 5;
+
+      const skip = (page - 1) * pageSize;
+      const take = pageSize;
+      const orders = await OrderService.getOrder(skip, take);
 
       res.status(200).json({
         message: "Success get all orders",
-        data: orders,
+        data: orders.orders,
+        metadata: {
+          total: orders.totalOrders,
+          page: page,
+          pageSize: pageSize,
+          totalPages: Math.ceil(orders.totalOrders / pageSize),
+        },
       });
     } catch (err) {
       next(err);
@@ -53,7 +61,7 @@ class OrderController {
       next(err);
     }
   }
-  
+
   // user update status order
   static async updateOrderStatus(req, res, next) {
     try {
