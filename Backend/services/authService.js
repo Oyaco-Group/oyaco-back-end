@@ -1,10 +1,38 @@
 const prisma = require("../lib/prisma");
 const { hashPassword, comparePassword } = require("../lib/bcrypt");
 const { generateToken } = require("../lib/jwt");
+const fs = require('fs');
+const {promisify} = require('util');
+const unlinkAsync = promisify(fs.unlink);
 
 class AuthService {
   static async register(data) {
-    const { name, email, address, password, user_role } = data;
+    const { name, email, address, password, user_role, image} = data;
+    let image_url;
+    const existingUser = await prisma.user.findUnique({
+      where : {email}
+    })
+
+    if(!image) {
+      image_url = null;
+
+      if(existingUser) throw({name : 'failedToCreate', message : 'Email is Already Used'});
+      if(!name || !email || !address || !password || !user_role) {
+        throw({name : 'failedToCreate', message : 'Please Input Every Field in Form'});
+      }
+
+    } else {
+      image_url = image.path;
+      
+      if(existingUser) {
+        await unlinkAsync(image_url);
+        throw({name : 'failedToCreate', message : 'Email is Already Used'});
+      }
+      if(!name || !email || !address || !password || !user_role) {
+        await unlinkAsync(image_url);
+        throw({name : 'failedToCreate', message : 'Please Input Every Field in Form'});
+      }
+    }
     const hashedPassword = hashPassword(password);
 
     const user = await prisma.user.create({
