@@ -25,7 +25,8 @@ class TransService {
         });
 
         if (!originWarehouse) {
-          throw new Error(`Warehouse with name ${origin} not found`);
+          throw { name: "invalidInput", message: `Invalid origin input` };
+          // throw new Error(`Warehouse with name ${origin} not found`);
         }
 
         originWarehouseId = originWarehouse.id;
@@ -38,7 +39,23 @@ class TransService {
         });
 
         if (!originInventory) {
-          throw new Error(`Inventory for product ${master_product_id} in warehouse ${originWarehouseId} not found`);
+          throw {
+            name: "notFound",
+            message: `Product with master product id ${master_product_id} is not found in origin warehouse`,
+          };
+          // throw new Error(
+          //   `Inventory for product ${master_product_id} in warehouse ${originWarehouseId} not found`
+          // );
+        }
+
+        if (originInventory.quantity < quantity) {
+          throw {
+            name: "exist",
+            message: `Not enough stock for product with master product id ${master_product_id} in warehouse ${originWarehouseId}`,
+          };
+          // throw new Error(
+          //   `Not enough stock for product ${master_product_id} in warehouse ${originWarehouseId}`
+          // );
         }
 
         productMovementOut = await prisma.productMovement.create({
@@ -64,6 +81,7 @@ class TransService {
             quantity: {
               decrement: quantity,
             },
+            isdelete: originInventory.quantity - quantity <= 0 ? true : false,
           },
         });
       } else {
@@ -89,7 +107,11 @@ class TransService {
         });
 
         if (!destinationWarehouse) {
-          throw new Error(`Warehouse with name ${destination} not found`);
+          throw {
+            name: "notFound",
+            message: `Destination ${destination} is not available`,
+          };
+          // throw new Error(`Warehouse with name ${destination} not found`);
         }
 
         const destinationWarehouseId = destinationWarehouse.id;
@@ -136,13 +158,14 @@ class TransService {
             quantity: {
               increment: quantity,
             },
+            isdelete: false,
           },
         });
       }
 
-      return { 
-        productMovementOut: origin === "Supplier" ? null : productMovementOut, 
-        productMovementIn 
+      return {
+        productMovementOut: origin === "Supplier" ? null : productMovementOut,
+        productMovementIn,
       };
     });
   }
