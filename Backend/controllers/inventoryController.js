@@ -139,6 +139,8 @@ class InventoryController {
       next(err);
     }
   }
+
+  
 }
 
 module.exports = InventoryController;

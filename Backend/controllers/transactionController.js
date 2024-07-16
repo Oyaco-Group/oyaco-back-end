@@ -1,10 +1,10 @@
-const TransService = require("../services/transService");
+const TransactionService = require("../services/transactionService");
 
-class TransController {
+class TransactionController {
   static async createTrans(req, res, next) {
     try {
       const data = req.body;
-      const productMovements = await TransService.createTrans(data);
+      const productMovements = await TransactionService.createTrans(data);
       res.status(200).json({
         data: productMovements,
       });
@@ -26,4 +26,4 @@ class TransController {
 //   "iscondition_good": true
 // }
 
-module.exports = TransController;
+module.exports = TransactionController;

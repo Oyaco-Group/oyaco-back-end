@@ -1,6 +1,6 @@
 const prisma = require("../lib/prisma");
 
-class TransService {
+class TransactionService {
   //Membuat transaction untuk dimasukkan ke productMovement
   //1 kali fungsi ini bisa langsung update dan/atau create inventory
   static async createTrans(data) {
@@ -180,4 +180,4 @@ class TransService {
   }
 }
 
-module.exports = TransService;
+module.exports = TransactionService;
