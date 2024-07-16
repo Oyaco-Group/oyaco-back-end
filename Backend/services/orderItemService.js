@@ -104,6 +104,8 @@ class OrderItemServicer {
       where: { id: parseInt(id) },
     });
 
+    if (!orderItem) throw { name: "notFound", message: "Order item not found" };
+
     const updateOrderItem = await prisma.order_item.update({
       where: { id: parseInt(id) },
       data: {
