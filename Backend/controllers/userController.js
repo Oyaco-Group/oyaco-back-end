@@ -45,7 +45,8 @@ class UserController {
     static async editUser (req,res,next) {
         try {
             const {id} = req.params;
-            const params = {...req.body,id};
+            const image = req.file;
+            const params = {...req.body,id, image};
             const user = await UserService.editUser(params);
             res.status(200).json({
                 message : 'User is Succesfully Updated',
