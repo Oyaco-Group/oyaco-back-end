@@ -32,7 +32,8 @@ class MasterProductController {
     static async getProductByName (req,res,next) {
         try {
             const {name} = req.params;
-            const product = await MasterProductService.getProductByName({name});
+            const product = await MasterProductService.getProductByName(name);
+
             res.status(200).json({
                 message : 'Success',
                 data : product
@@ -57,11 +58,12 @@ class MasterProductController {
 
     static async createProduct (req,res,next) {
         try {
-            const params = req.body;
+            const image = req.file.path;
+            const params = {...req.body,image};
             const product = await MasterProductService.createProduct(params);
             res.status(201).json({
                 message : 'Master Product is Successfully Created',
-                product
+                data : product
             })
         } catch(err) {
             next(err);
@@ -71,7 +73,9 @@ class MasterProductController {
     static async editProduct (req,res,next) {
         try {
             const {id} = req.params;
-            const params = {...req.body, id};
+            const image = req.file.path;
+            const params = {...req.body, id, image};
+          
             const product = await MasterProductService.editProduct(params);
             res.status(200).json({
                 message : 'Master Produt is Successfully Updated',
