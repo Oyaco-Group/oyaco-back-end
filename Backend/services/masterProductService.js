@@ -1,6 +1,10 @@
 const { default: slugify } = require("slugify");
 const prisma = require("../lib/prisma");
 const slug = require("slugify");
+const fs = require('fs');
+const path = require('path');
+const {promisify} = require('util');
+const unlinkAsync = promisify(fs.unlink);
 
 class MasterProductService {
     static async getListProduct(params) {
@@ -61,6 +65,7 @@ class MasterProductService {
     static async createProduct(params) {
         const {
             name,
+            image,
             sku,
             price,
             category_id,
@@ -69,16 +74,27 @@ class MasterProductService {
         const existingProduct = await prisma.masterProduct.findFirst({
             where : {name}
         })
-        if(existingProduct) throw({name : 'failedToCreate', message : 'Product has been Existed'});
+        if(existingProduct) {
+            await unlinkAsync(image);
+            throw({name : 'failedToCreate', message : 'Product has been Existed'});
+        }
+        const existingSKU = await prisma.masterProduct.findUnique({
+            where : {sku}
+        })
+        if(existingSKU) {
+            await unlinkAsync(image);
+            throw({name : 'failedToCreate', message : 'SKU has been Existed'});
+        }
         const isdeleteBoolean = isdelete === "true";
         const lowerCaseName = name.toLowerCase();
         const slugify = slug(lowerCaseName,'-');
-        console.log(slugify);
+
         const product = await prisma.masterProduct.create({
             data : {
                 name,
+                image,
                 sku,
-                price : price,
+                price,
                 isdelete : isdeleteBoolean,
                 slugify,
                 category : {
@@ -93,7 +109,9 @@ class MasterProductService {
 
     static async editProduct (params) {
         const {id} = params;
-        const {name,
+        const {
+            name,
+            image,
             category_id,
             price,
             sku,
@@ -102,18 +120,43 @@ class MasterProductService {
         const isdeleteBoolean = isdelete === "true";
         const lowerCaseName = name.toLowerCase();
         const slugify = slug(lowerCaseName,'-');
-        const existingProduct = await prisma.masterProduct.findUnique({
+        const existingProductId = await prisma.masterProduct.findUnique({
             where : {
                 id : +id
             }
         })
-        if(!existingProduct) throw({name : 'failedToUpdate', message : 'Can not Update, product is Not Found'});
+        if(!existingProductId) {
+            await unlinkAsync(image);
+            throw({name : 'failedToUpdate', message : 'Can not Update, product is Not Found'});
+        }
+        const existingProduct = await prisma.masterProduct.findFirst({
+            where : {name}
+        })
+        if(name !== existingProductId.name) {
+            if(existingProduct) {
+                await unlinkAsync(image);
+                throw({name : 'failedToUpdate', message : 'Product has been Existed'});
+            }
+        }
+        const existingSKU = await prisma.masterProduct.findUnique({
+            where : {sku}
+        })
+        if (sku !== existingProductId.sku) {
+            if(existingSKU) {
+                await unlinkAsync(image);
+                throw({name : 'failedToUpdate', message : 'SKU has been Existed'});
+            }
+        }
+        if(existingProductId.image) {
+            await unlinkAsync(existingProductId.image);
+        }
         const product = await prisma.masterProduct.update({
             where : {
                 id : +id
             },
             data : {
                 name,
+                image,
                 category_id : +category_id,
                 price,
                 sku,
@@ -125,6 +168,12 @@ class MasterProductService {
     }
 
     static async deleteProduct(params) {
+        const existingProduct = await prisma.masterProduct.findUnique({
+            where : {
+                id : +params
+            }
+        })
+        if(!existingProduct) throw({name : 'failedToDelete', message : 'Can not Delete, Product is Not Found'});
         const product = await prisma.masterProduct.delete({
             where : {
                 id : +params
@@ -134,5 +183,7 @@ class MasterProductService {
     }
 
 }
+
+
 
 module.exports = MasterProductService;
