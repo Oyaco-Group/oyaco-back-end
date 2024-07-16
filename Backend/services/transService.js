@@ -2,7 +2,7 @@ const prisma = require("../lib/prisma");
 
 class TransService {
   //Membuat transaction untuk dimasukkan ke productMovement
-  //1 kali fungsi ini bisa langsung update dan create inventory
+  //1 kali fungsi ini bisa langsung update dan/atau create inventory
   static async createTrans(data) {
     return prisma.$transaction(async (prisma) => {
       const {
