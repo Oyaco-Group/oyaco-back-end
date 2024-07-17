@@ -3,15 +3,10 @@ const AuthService = require("../services/authService");
 class AuthController {
   static async register(req, res, next) {
     try {
-      const { name, email, address, password, user_role } = req.body;
+      const image = req.file;
+      const params = {...req.body,image};
 
-      const user = await AuthService.register({
-        name,
-        email,
-        address,
-        password,
-        user_role,
-      });
+      const user = await AuthService.register(params);
 
       res.status(201).json({
         message: "User Registered Successfully",
