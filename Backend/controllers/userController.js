@@ -1,8 +1,3 @@
-<<<<<<< HEAD
-class UserController {
-    
-}
-=======
 const UserService = require("../services/userService");
 
 class UserController {
@@ -78,4 +73,3 @@ class UserController {
 }
 
 module.exports = UserController;
->>>>>>> cef8ccd1c95c8700a3622b115a1a7833ef65836d
