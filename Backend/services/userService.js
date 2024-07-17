@@ -73,6 +73,7 @@ class UserService {
             if(!name || !email || !password || !address || !user_role || !isdelete) {
                 throw({name : 'failedToUpdate', message : 'Please Input Every Field in Form'});
             }
+            if(email !== existingUser.email) throw({name : 'failedToUpdate', message : 'Can not Change Email'});
         } else {
             image_url = image.path;
 
@@ -83,6 +84,10 @@ class UserService {
             if(!name || !email || !password || !address || !user_role || !isdelete) {
                 await unlinkAsync(image_url);
                 throw({name : 'failedToUpdate', message : 'Please Input Every Field in Form'});
+            }
+            if(email !== existingUser.email) {
+                await unlinkAsync(image_url);
+                throw({name : 'failedToUpdate', message : 'Can not Change Email'});
             }
             if(existingUser.image_url) {
                 await unlinkAsync(existingUser.image_url);
@@ -111,6 +116,13 @@ class UserService {
     }
 
     static async deleteUser(params) {
+        const existingUser = await prisma.user.findUnique({
+            where : {
+                id : +params
+            }
+        })
+        if(!existingUser) throw({name : 'failedToDelete', message : 'Can not Delete, User is Not Found'});
+        await unlinkAsync(existingUser.image_url);
         const user = await prisma.user.delete({
             where : {
                 id : +params
