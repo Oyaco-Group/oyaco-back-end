@@ -178,7 +178,6 @@ class TransactionService {
       };
     });
   }
-
   static async getAllTransactions(page) {
     const limit = 10;
     const skip = (page - 1) * limit;
