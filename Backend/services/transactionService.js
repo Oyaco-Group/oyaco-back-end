@@ -209,15 +209,14 @@ class TransactionService {
         }
       },
       include: {
-        inventory: true,  // Mengikutsertakan data inventory
-        user: true,       // Mengikutsertakan data user
-        master_product: true // Mengikutsertakan data master_product
+        inventory: true,
+        user: true,  
+        master_product: true
       }
     });
   
     return transactions;
   }
-  
 
   static async sortHighest() {
     const data = await prisma.productMovement.findMany();

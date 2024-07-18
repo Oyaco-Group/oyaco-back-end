@@ -55,7 +55,6 @@ class TransactionController {
       next(err);
     }
   }
-  
 
   static async sortHighest(req, res, next) {
     try {

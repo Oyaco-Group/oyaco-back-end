@@ -16,6 +16,7 @@ router.use("/api/auth", authRoute);
 //router.use(authentication);
 router.use("/api/user",userRoute);
 router.use("/api/order", orderRoute);
+router.use("/api/masterProduct",masterProductRoutes);
 router.use("/api/orderitem", orderItemRoute);
 router.use("/api/masterProduct",masterProductRoutes);
 router.use("/api/categories", categoryRoutes);
