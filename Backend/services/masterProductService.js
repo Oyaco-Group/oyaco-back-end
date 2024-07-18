@@ -174,6 +174,7 @@ class MasterProductService {
             }
         })
         if(!existingProduct) throw({name : 'failedToDelete', message : 'Can not Delete, Product is Not Found'});
+        await unlinkAsync(existingProduct.image);
         const product = await prisma.masterProduct.delete({
             where : {
                 id : +params
