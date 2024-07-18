@@ -57,6 +57,9 @@ class OrderServicer {
     const orders = await prisma.order.findMany({
       skip: skip,
       take: take,
+      include : {
+        complaint : true
+      }
     });
 
     const totalOrders = await prisma.order.count();

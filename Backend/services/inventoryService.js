@@ -10,13 +10,30 @@ class InventoryService {
       isdelete,
     } = data;
 
+    const expirationStatusBoolean = (expiration_status === true);
+    const isdeleteBoolean = (isdelete === true);
+
+    const existingInventory = await prisma.inventory.findFirst({
+      where : {
+        AND : [
+          {warehouse_id : +warehouse_id},
+          {master_product_id : +master_product_id},
+        ]
+      },
+    })
+    if(existingInventory) {
+      throw({
+        name : 'failedToCreate', 
+        message : 'Inventory is Already Exist, Please Check Inventory List'
+      })
+    }
     const inventory = await prisma.inventory.create({
       data: {
-        master_product_id,
-        warehouse_id,
-        quantity,
-        expiration_status,
-        isdelete,
+        master_product_id : +master_product_id,
+        warehouse_id : +warehouse_id,
+        quantity : +quantity,
+        expiration_status : expirationStatusBoolean,
+        isdelete : isdeleteBoolean
       },
     });
     return inventory;
@@ -111,6 +128,30 @@ class InventoryService {
       throw { name: "failedToUpdate", message: "Edit failed" };
     }
 
+    const checkInventory = await prisma.inventory.findFirst({
+      where : {
+        AND : [
+          {warehouse_id : +warehouse_id},
+          {master_product_id : +master_product_id}
+        ]
+      }
+    })
+
+    if(+warehouse_id !== +invetoryExist.warehouse_id) {
+      if(checkInventory) 
+        throw({
+          name : 'failedToUpdate',
+          message : 'Inventory is Already Exist, Please Check Inventory List'
+        })
+    }
+    if(+master_product_id !== +invetoryExist.master_product_id) {
+      if(checkInventory)
+        throw({
+          name : 'failedToUpdate',
+          message : 'Inventory is Already Exist, Please Check Inventory List'
+        })
+    }
+
     const inventory = await prisma.inventory.update({
       where: { id: parseInt(id) },
       data: {
@@ -126,10 +167,6 @@ class InventoryService {
   }
 
   static async delete(id) {
-    const inventory = await prisma.inventory.delete({
-      where: { id: parseInt(id) },
-    });
-
     const invetoryExist = await prisma.inventory.findUnique({
       where: {
         id: parseInt(id),
@@ -139,6 +176,9 @@ class InventoryService {
     if (!invetoryExist) {
       throw { name: "failedToDelete", message: "Delete failed" };
     }
+    const inventory = await prisma.inventory.delete({
+      where: { id: parseInt(id) },
+    });
 
     return inventory;
   }

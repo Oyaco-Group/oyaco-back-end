@@ -178,6 +178,83 @@ class TransactionService {
       };
     });
   }
+  static async getAllTransactions(page) {
+    const limit = 10;
+    const skip = (page - 1) * limit;
+    const productMovement = await prisma.productMovement.findMany({
+      take: limit,
+      skip: skip,
+    });
+
+    return productMovement;
+  }
+
+  static async getTransactionById(id) {
+    const productMovement = await prisma.productMovement.findUnique({
+      where: { id: parseInt(id) },
+    });
+
+    if (!productMovement) {
+      throw { name: "notFound", message: "Transaction not found" };
+    }
+
+    return productMovement;
+  }
+
+  static async getTransactionsByWarehouseId(warehouseId) {
+    const transactions = await prisma.productMovement.findMany({
+      where: {
+        inventory: {
+          warehouse_id: parseInt(warehouseId)
+        }
+      },
+      include: {
+        inventory: true,
+        user: true,  
+        master_product: true
+      }
+    });
+  
+    return transactions;
+  }
+
+  static async sortHighest() {
+    const data = await prisma.productMovement.findMany();
+
+    const sortHigh = (array) => {
+      for (let i = 1; i < array.length; i++) {
+        for (let j = 0; j < i; j++) {
+          if (array[i].quantity > array[j].quantity) {
+            const x = array[i];
+            array[i] = array[j];
+            array[j] = x;
+          }
+        }
+      }
+      return array;
+    };
+    const sortedTransactions = sortHigh(data);
+    return sortedTransactions;
+  }
+
+  static async sortLowest() {
+    const data = await prisma.productMovement.findMany();
+
+    const sortLow = (array) => {
+      for (let i = 1; i < array.length; i++) {
+        for (let j = 0; j < i; j++) {
+          if (array[i].quantity < array[j].quantity) {
+            const x = array[i];
+            array[i] = array[j];
+            array[j] = x;
+          }
+        }
+      }
+      return array;
+    };
+    const sortedTransactions = sortLow(data);
+    return sortedTransactions;
+  }
 }
 
 module.exports = TransactionService;
