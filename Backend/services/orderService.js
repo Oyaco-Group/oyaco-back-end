@@ -15,6 +15,13 @@ class OrderServicer {
       },
     });
 
+    const complaint = await prisma.complaint.create({
+      data: {
+        order_id: order.id,
+        iscomplaint: false,
+      },
+    });
+
     const user = await prisma.user.findUnique({
       where: { id: user_id },
     });
@@ -35,10 +42,8 @@ class OrderServicer {
 
     const infoMessageId = await getData(emailInfo);
 
-    // Tentukan waktu untuk memanggil updateOrderStatus
     const scheduledTime = new Date(order.created_at.getTime() + 1 * 60 * 1000); // 1 menit setelah pembuatan order
 
-    // Jadwalkan pemanggilan updateOrderStatus menggunakan setTimeout
     const delay = scheduledTime - new Date();
     setTimeout(async () => {
       console.log("Running order status update job...");
@@ -66,6 +71,9 @@ class OrderServicer {
   static async getOneOrder(id) {
     const order = await prisma.order.findUnique({
       where: { id: parseInt(id) },
+      include: {
+        complaint: true,
+      },
     });
 
     if (!order) {
