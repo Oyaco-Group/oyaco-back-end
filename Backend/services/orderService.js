@@ -52,6 +52,9 @@ class OrderServicer {
     const orders = await prisma.order.findMany({
       skip: skip,
       take: take,
+      include : {
+        complaint : true
+      }
     });
 
     const totalOrders = await prisma.order.count();
@@ -66,6 +69,9 @@ class OrderServicer {
   static async getOneOrder(id) {
     const order = await prisma.order.findUnique({
       where: { id: parseInt(id) },
+      include : {
+        order_item : true
+      }
     });
 
     if (!order) {
