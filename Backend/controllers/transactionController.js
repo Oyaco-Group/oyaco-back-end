@@ -42,6 +42,21 @@ class TransactionController {
     }
   }
 
+  static async getTransactionsByWarehouseId(req, res, next) {
+    try {
+      const { warehouseId } = req.params;
+      const transactions = await TransactionService.getTransactionsByWarehouseId(warehouseId);
+  
+      res.status(200).json({
+        message: "success get transactions by warehouse id",
+        data: transactions,
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
+  
+
   static async sortHighest(req, res, next) {
     try {
       const stockHigh = await TransactionService.sortHighest();

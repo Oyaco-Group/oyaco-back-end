@@ -201,13 +201,23 @@ class TransactionService {
     return productMovement;
   }
 
-  // static async getTransactionsByWarehouse(id) {
-  //   const productMovement = await prisma.productMovement.findMany({
-  //     where: { warehouse_id: parseInt(id) },
-  //   });
-
-  //   return productMovement;
-  // }
+  static async getTransactionsByWarehouseId(warehouseId) {
+    const transactions = await prisma.productMovement.findMany({
+      where: {
+        inventory: {
+          warehouse_id: parseInt(warehouseId)
+        }
+      },
+      include: {
+        inventory: true,  // Mengikutsertakan data inventory
+        user: true,       // Mengikutsertakan data user
+        master_product: true // Mengikutsertakan data master_product
+      }
+    });
+  
+    return transactions;
+  }
+  
 
   static async sortHighest() {
     const data = await prisma.productMovement.findMany();
