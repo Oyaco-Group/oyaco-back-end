@@ -1,4 +1,5 @@
 const express = require("express");
+const path = require('path');
 const router = express.Router();
 const authRoute = require("./authRoute.js");
 const userRoute = require('./userRoute.js');
@@ -14,6 +15,8 @@ const transactionsRoutes = require("./transactionRoute.js")
 
 router.use("/api/auth", authRoute);
 //router.use(authentication);
+router.use("/api/images", express.static(path.join(__dirname,"..assets/masterProduct")));
+router.use("/api/images", express.static(path.join(__dirname,"..assets/user")));
 router.use("/api/user",userRoute);
 router.use("/api/order", orderRoute);
 router.use("/api/masterProduct",masterProductRoutes);
