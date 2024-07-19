@@ -179,7 +179,7 @@ class TransactionService {
     });
   }
   static async getAllTransactions(page) {
-    const limit = 10;
+    const limit = 5;
     const skip = (page - 1) * limit;
     const productMovement = await prisma.productMovement.findMany({
       take: limit,
@@ -201,12 +201,22 @@ class TransactionService {
     return productMovement;
   }
 
-  static async getTransactionsByWarehouseId(warehouseId) {
+  static async getOutgoingTransactionsByWarehouseId(warehouseId) {
     const transactions = await prisma.productMovement.findMany({
       where: {
-        inventory: {
-          warehouse_id: parseInt(warehouseId)
-        }
+        AND: [
+          {
+            inventory: {
+              warehouse_id: parseInt(warehouseId)
+            }
+          },
+          {
+            movement_type: {
+              mode: "insensitive",
+              equals: "Out"
+            }
+          }
+        ]
       },
       include: {
         inventory: true,
@@ -214,7 +224,34 @@ class TransactionService {
         master_product: true
       }
     });
-  
+    
+    return transactions;
+  }
+
+  static async getIncomingTransactionsByWarehouseId(warehouseId) {
+    const transactions = await prisma.productMovement.findMany({
+      where: {
+        AND: [
+          {
+            inventory: {
+              warehouse_id: parseInt(warehouseId)
+            }
+          },
+          {
+            movement_type: {
+              mode: "insensitive",
+              equals: "In"
+            }
+          }
+        ]
+      },
+      include: {
+        inventory: true,
+        user: true,  
+        master_product: true
+      }
+    });
+    
     return transactions;
   }
 
