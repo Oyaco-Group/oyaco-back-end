@@ -61,7 +61,19 @@ class OrderController {
       next(err);
     }
   }
+  static async getOneOrderUser(req, res, next) {
+    try {
+      const { user_id } = req.params;
+      const order = await OrderService.getOneOrderUser(user_id);
 
+      res.status(200).json({
+        message: "Success get order",
+        data: order,
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
   // user update status order
   static async updateOrderStatus(req, res, next) {
     try {
