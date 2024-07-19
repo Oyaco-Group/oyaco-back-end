@@ -57,9 +57,11 @@ class AuthService {
         email: email,
       },
     });
-
+    
     if (!existUser || !comparePassword(password, existUser.password)) {
-      throw { name: "invalidCredentials", message : 'Invalid Email or Password' };
+      const error = new Error("Email or password is incorrect!");
+      error.name = "invalidCredentials";
+      throw error;
     }
 
     const token = generateToken({
