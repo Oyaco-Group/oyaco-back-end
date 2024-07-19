@@ -2,7 +2,7 @@ const prisma = require("../lib/prisma");
 
 class CategoryService {
   static async getListCategories() {
-    const categories = await prisma.Category.findMany();
+    const categories = await prisma.category.findMany();
     if (!categories)
       throw {
         name: "failedToRetrieve",
@@ -12,13 +12,13 @@ class CategoryService {
   }
 
   static async create(name) {
-    const existingCategory = await prisma.Category.findFirst({
+    const existingCategory = await prisma.category.findFirst({
       where: { name },
     });
     if (existingCategory)
       throw { name: "exist", message: "Category already exists" };
 
-    const newCategory = await prisma.Category.create({
+    const newCategory = await prisma.category.create({
       data: { name: name },
     });
     if (!newCategory)
@@ -27,7 +27,7 @@ class CategoryService {
   }
 
   static async edit(id, name) {
-    const existingCategory = await prisma.Category.findUnique({
+    const existingCategory = await prisma.category.findUnique({
       where: { id: parseInt(id) },
     });
     if (!existingCategory)
@@ -36,7 +36,7 @@ class CategoryService {
         message: "Update is failed, no existing category",
       };
 
-    const updatedCategory = await prisma.Category.update({
+    const updatedCategory = await prisma.category.update({
       where: { id: parseInt(id) },
       data: { name: name },
     });
@@ -46,7 +46,7 @@ class CategoryService {
   }
 
   static async delete(id) {
-    const existingCategory = await prisma.Category.findUnique({
+    const existingCategory = await prisma.category.findUnique({
       where: { id: parseInt(id) },
     });
     if (!existingCategory)
@@ -55,7 +55,7 @@ class CategoryService {
         message: "Delete is failed, no existing category",
       };
 
-    const deletedCategory = await prisma.Category.delete({
+    const deletedCategory = await prisma.category.delete({
       where: { id: parseInt(id) },
     });
     if (!deletedCategory)
