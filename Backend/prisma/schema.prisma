@@ -33,7 +33,7 @@ model User {
 
 model Order {
   id           Int          @id @default(autoincrement())
-  user_id      Int
+  user_id      Int          
   payment_type String
   order_status String
   buyer_status String
@@ -116,7 +116,7 @@ model MasterProduct {
   name             String
   image            String?
   sku              String            @unique
-  slugify          String
+  slugify          String?
   price            String
   category_id      Int
   isdelete         Boolean           @default(false)
