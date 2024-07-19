@@ -8,7 +8,7 @@ class OrderServicer {
 
     const order = await prisma.order.create({
       data: {
-        user_id: user_id,
+        user_id: +user_id,
         payment_type: payment_type,
         order_status: order_status,
         buyer_status: buyer_status,
@@ -23,7 +23,7 @@ class OrderServicer {
     });
 
     const user = await prisma.user.findUnique({
-      where: { id: user_id },
+      where: { id: +user_id },
     });
 
     const user_email = user.email;
