@@ -5,4 +5,4 @@
 
 */
 -- AlterTable
-ALTER TABLE "MasterProduct" ADD COLUMN     "slugify" TEXT NOT NULL;
+ALTER TABLE "MasterProduct" ADD COLUMN     "slugify" TEXT;
