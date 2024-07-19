@@ -86,6 +86,21 @@ class OrderServicer {
     return order;
   }
 
+  static async getOneOrderUser(user_id) {
+    const order = await prisma.order.findMany({
+      where: { user_id: +user_id },
+      include: {
+        complaint: true,
+      },
+    });
+
+    if (!order) {
+      throw { name: "notFound", message: "Order not found" };
+    }
+
+    return order;
+  }
+
   static async updateOrder(data) {
     const { id, user_id, payment_type, order_status, buyer_status } = data;
 
