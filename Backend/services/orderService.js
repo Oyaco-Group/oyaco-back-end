@@ -70,7 +70,20 @@ class OrderServicer {
     const order = await prisma.order.findUnique({
       where: { id: parseInt(id) },
       include : {
-        order_item : true
+        order_item : {
+          select : {
+            quantity : true,
+            master_product : true,
+          }
+        },
+        user : {
+          select : {
+            name : true,
+            email : true,
+            address : true,
+          }
+        },
+        
       }
     });
 
