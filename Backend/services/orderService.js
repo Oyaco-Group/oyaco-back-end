@@ -74,9 +74,22 @@ class OrderServicer {
   static async getOneOrder(id) {
     const order = await prisma.order.findUnique({
       where: { id: parseInt(id) },
-      include: {
-        complaint: true,
-      },
+      include : {
+        order_item : {
+          select : {
+            quantity : true,
+            master_product : true,
+          }
+        },
+        user : {
+          select : {
+            name : true,
+            email : true,
+            address : true,
+          }
+        },
+        
+      }
     });
 
     if (!order) {
