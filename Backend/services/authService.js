@@ -8,13 +8,14 @@ const unlinkAsync = promisify(fs.unlink);
 class AuthService {
   static async register(data) {
     const { name, email, address, password, user_role, image} = data;
-    let image_url;
+    const image_url = image.filename;
+    let imagePath;
     const existingUser = await prisma.user.findUnique({
       where : {email}
     })
 
     if(!image) {
-      image_url = null;
+      imagePath = null;
 
       if(existingUser) throw({name : 'failedToCreate', message : 'Email is Already Used'});
       if(!name || !email || !address || !password || !user_role) {
@@ -22,14 +23,14 @@ class AuthService {
       }
 
     } else {
-      image_url = image.path;
+      imagePath = image.path;
       
       if(existingUser) {
-        await unlinkAsync(image_url);
+        await unlinkAsync(imagePath);
         throw({name : 'failedToCreate', message : 'Email is Already Used'});
       }
       if(!name || !email || !address || !password || !user_role) {
-        await unlinkAsync(image_url);
+        await unlinkAsync(imagePath);
         throw({name : 'failedToCreate', message : 'Please Input Every Field in Form'});
       }
     }
@@ -42,6 +43,7 @@ class AuthService {
         address: address,
         password: hashedPassword,
         user_role: user_role,
+        image_url
       },
     });
 

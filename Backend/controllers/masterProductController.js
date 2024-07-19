@@ -58,7 +58,7 @@ class MasterProductController {
 
     static async createProduct (req,res,next) {
         try {
-            const image = req.file.path;
+            const image = req.file;
             const params = {...req.body,image};
             const product = await MasterProductService.createProduct(params);
             res.status(201).json({
@@ -73,7 +73,7 @@ class MasterProductController {
     static async editProduct (req,res,next) {
         try {
             const {id} = req.params;
-            const image = req.file.path;
+            const image = req.file;
             const params = {...req.body, id, image};
           
             const product = await MasterProductService.editProduct(params);

@@ -4,7 +4,8 @@ const TransController = require("../controllers/transactionController");
 
 router.get("/", TransController.getAllTransactions);
 router.get("/:id", TransController.getTransactionById);
-router.get("/warehouse/:warehouseId", TransController.getTransactionsByWarehouseId);
+router.get("/outgoing/:warehouseId", TransController.getOutgoingTransactionsByWarehouseId);
+router.get("/incoming/:warehouseId", TransController.getOutgoingTransactionsByWarehouseId);
 router.get("/sort/highest", TransController.sortHighest);
 router.get("/sort/lowest", TransController.sortLowest);
 router.post("/", TransController.createTrans);

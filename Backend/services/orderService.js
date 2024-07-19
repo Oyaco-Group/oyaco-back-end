@@ -15,6 +15,13 @@ class OrderServicer {
       },
     });
 
+    const complaint = await prisma.complaint.create({
+      data: {
+        order_id: order.id,
+        iscomplaint: false,
+      },
+    });
+
     const user = await prisma.user.findUnique({
       where: { id: user_id },
     });
@@ -35,10 +42,8 @@ class OrderServicer {
 
     const infoMessageId = await getData(emailInfo);
 
-    // Tentukan waktu untuk memanggil updateOrderStatus
     const scheduledTime = new Date(order.created_at.getTime() + 1 * 60 * 1000); // 1 menit setelah pembuatan order
 
-    // Jadwalkan pemanggilan updateOrderStatus menggunakan setTimeout
     const delay = scheduledTime - new Date();
     setTimeout(async () => {
       console.log("Running order status update job...");
@@ -52,6 +57,9 @@ class OrderServicer {
     const orders = await prisma.order.findMany({
       skip: skip,
       take: take,
+      include : {
+        complaint : true
+      }
     });
 
     const totalOrders = await prisma.order.count();
@@ -66,6 +74,37 @@ class OrderServicer {
   static async getOneOrder(id) {
     const order = await prisma.order.findUnique({
       where: { id: parseInt(id) },
+      include : {
+        order_item : {
+          select : {
+            quantity : true,
+            master_product : true,
+          }
+        },
+        user : {
+          select : {
+            name : true,
+            email : true,
+            address : true,
+          }
+        },
+        
+      }
+    });
+
+    if (!order) {
+      throw { name: "notFound", message: "Order not found" };
+    }
+
+    return order;
+  }
+
+  static async getOneOrderUser(user_id) {
+    const order = await prisma.order.findMany({
+      where: { user_id: +user_id },
+      include: {
+        complaint: true,
+      },
     });
 
     if (!order) {
