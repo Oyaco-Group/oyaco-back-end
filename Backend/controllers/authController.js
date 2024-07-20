@@ -4,7 +4,7 @@ class AuthController {
   static async register(req, res, next) {
     try {
       const image = req.file;
-      const params = {...req.body,image};
+      const params = { ...req.body, image };
 
       const user = await AuthService.register(params);
 
@@ -21,13 +21,18 @@ class AuthController {
     try {
       const { email, password } = req.body;
 
-      let data = await AuthService.login({
-        email, password
-      })
-     
-      res.status(201).json({
+      const { token, user } = await AuthService.login({
+        email,
+        password,
+      });
+
+      res.status(200).json({
+        status: "success",
         message: "Login Successfully",
-        data: data,
+        data: {
+          token,
+          user,
+        },
       });
     } catch (err) {
       next(err);
