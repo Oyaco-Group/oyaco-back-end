@@ -42,10 +42,24 @@ class TransactionController {
     }
   }
 
-  static async getTransactionsByWarehouseId(req, res, next) {
+  static async getOutgoingTransactionsByWarehouseId(req, res, next) {
     try {
       const { warehouseId } = req.params;
-      const transactions = await TransactionService.getTransactionsByWarehouseId(warehouseId);
+      const transactions = await TransactionService.getOutgoingTransactionsByWarehouseId(warehouseId);
+  
+      res.status(200).json({
+        message: "success get transactions by warehouse id",
+        data: transactions,
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  static async getIncomingTransactionsByWarehouseId(req, res, next) {
+    try {
+      const { warehouseId } = req.params;
+      const transactions = await TransactionService.getIncomingTransactionsByWarehouseId(warehouseId);
   
       res.status(200).json({
         message: "success get transactions by warehouse id",

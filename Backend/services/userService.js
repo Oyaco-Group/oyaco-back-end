@@ -1,6 +1,7 @@
 const { hashPassword } = require('../lib/bcrypt');
 const prisma = require('../lib/prisma');
 const fs = require('fs');
+const path = require('path');
 const {promisify} = require('util');
 const unlinkAsync = promisify(fs.unlink);
 
@@ -58,14 +59,15 @@ class UserService {
     static async editUser(params) {
         const {id,name,email,password,address,user_role,isdelete,image} = params;
         const isdeleteBoolean = (isdelete === "true");
-        let image_url;
+        const image_url = image.filename;
+        let imagePath;
         const existingUser = await prisma.user.findUnique({
             where : {
                 id : +id
             }
         })
         if(!image) {
-            image_url = null;
+            imagePath = null;
 
             if(!existingUser) {
                 throw({name : 'failedToUpdate', message : 'Update is Failed, No Existing User'});
@@ -75,22 +77,22 @@ class UserService {
             }
             if(email !== existingUser.email) throw({name : 'failedToUpdate', message : 'Can not Change Email'});
         } else {
-            image_url = image.path;
+            imagePath = image.path;
 
             if(!existingUser) {
-                await unlinkAsync(image_url);
+                await unlinkAsync(imagePath);
                 throw({name : 'failedToUpdate', message : 'Update is Failed, No Existing User'});
             }
             if(!name || !email || !password || !address || !user_role || !isdelete) {
-                await unlinkAsync(image_url);
+                await unlinkAsync(imagePath);
                 throw({name : 'failedToUpdate', message : 'Please Input Every Field in Form'});
             }
             if(email !== existingUser.email) {
-                await unlinkAsync(image_url);
+                await unlinkAsync(imagePath);
                 throw({name : 'failedToUpdate', message : 'Can not Change Email'});
             }
             if(existingUser.image_url) {
-                await unlinkAsync(existingUser.image_url);
+                await unlinkAsync(`${path.join('assets/user/', existingUser.image_url)}`);
             }
         }
 
