@@ -33,7 +33,7 @@ model User {
 
 model Order {
   id           Int          @id @default(autoincrement())
-  user_id      Int          
+  user_id      Int
   payment_type String
   order_status String
   buyer_status String
@@ -68,19 +68,19 @@ model order_item {
 }
 
 model Warehouse {
-  id         Int         @id @default(autoincrement())
-  name       String
-  location   String
-  isdelete   Boolean     @default(false)
-  created_at DateTime    @default(now())
-  updated_at DateTime    @updatedAt
-  inventory  Inventory[]
+  id              Int               @id @default(autoincrement())
+  name            String
+  location        String
+  isdelete        Boolean           @default(false)
+  created_at      DateTime          @default(now())
+  updated_at      DateTime          @updatedAt
+  inventory       Inventory[]
 }
 
 model Inventory {
   id                Int               @id @default(autoincrement())
   master_product_id Int
-  warehouse_id      Int               
+  warehouse_id      Int
   quantity          Int
   expiration_status Boolean
   isdelete          Boolean           @default(false)

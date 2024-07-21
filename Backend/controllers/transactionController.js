@@ -45,8 +45,12 @@ class TransactionController {
   static async getOutgoingTransactionsByWarehouseId(req, res, next) {
     try {
       const { warehouseId } = req.params;
-      const transactions = await TransactionService.getOutgoingTransactionsByWarehouseId(warehouseId);
-  
+      const page = req.query.page;
+      const transactions =
+        await TransactionService.getOutgoingTransactionsByWarehouseId(
+          warehouseId, page
+        );
+
       res.status(200).json({
         message: "success get transactions by warehouse id",
         data: transactions,
@@ -59,8 +63,11 @@ class TransactionController {
   static async getIncomingTransactionsByWarehouseId(req, res, next) {
     try {
       const { warehouseId } = req.params;
-      const transactions = await TransactionService.getIncomingTransactionsByWarehouseId(warehouseId);
-  
+      const transactions =
+        await TransactionService.getIncomingTransactionsByWarehouseId(
+          warehouseId
+        );
+
       res.status(200).json({
         message: "success get transactions by warehouse id",
         data: transactions,
@@ -93,7 +100,6 @@ class TransactionController {
       next(err);
     }
   }
-
 }
 
 // Contoh input postman:
