@@ -64,6 +64,9 @@ class OrderItemServicer {
   static async getOneOrderItem(order_id) {
     const orderItem = await prisma.order_item.findMany({
       where: { order_id: parseInt(order_id) },
+      include: {
+        master_product: true
+      }
     });
 
     if (!orderItem) {
