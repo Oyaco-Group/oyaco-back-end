@@ -47,7 +47,7 @@ model Order {
 model Complaint {
   id          Int      @id @default(autoincrement())
   order_id    Int      @unique
-  iscomplaint Boolean
+  iscomplaint Boolean  @default(false)
   text        String?
   created_at  DateTime @default(now())
   updated_at  DateTime @updatedAt
@@ -82,7 +82,6 @@ model Inventory {
   master_product_id Int
   warehouse_id      Int               
   quantity          Int
-  expiration_status Boolean
   isdelete          Boolean           @default(false)
   created_at        DateTime          @default(now())
   updated_at        DateTime          @updatedAt
@@ -98,12 +97,13 @@ model ProductMovement {
   master_product_id Int
   inventory_id      Int
   movement_type     String
-  origin            String
-  destination       String
+  origin            String?
+  destination       String?
   quantity          Int
   iscondition_good  Boolean       @default(true)
   arrival_date      DateTime      @default(now())
   expiration_date   DateTime      @default(now())
+  expiration_status Boolean       @default(false)
   created_at        DateTime      @default(now())
   updated_at        DateTime      @updatedAt
   user              User          @relation(fields: [user_id], references: [id], onUpdate: Cascade, onDelete: Cascade)
