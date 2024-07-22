@@ -10,12 +10,22 @@ class UserService {
     const { page, limit } = params;
     const skip = (page - 1) * limit;
     const take = +limit;
+
+    const total_user = await prisma.user.count({
+      where: {
+        user_role: "user",
+      },
+    });
+
+    const total_page = Math.ceil(total_user / take);
+
     const users = await prisma.user.findMany({
       skip,
       take,
       where: {
         user_role: "user",
-select: {
+      },
+      select: {
         id: true,
         name: true,
         email: true,
@@ -23,7 +33,7 @@ select: {
         user_role: true,
       },
     });
-    return users;
+    return { users, total_user, total_page };
   }
 
   static async getUserById(params) {
