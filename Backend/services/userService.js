@@ -13,7 +13,9 @@ class UserService {
     const users = await prisma.user.findMany({
       skip,
       take,
-      select: {
+      where: {
+        user_role: "user",
+select: {
         id: true,
         name: true,
         email: true,
