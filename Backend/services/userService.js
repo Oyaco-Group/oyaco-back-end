@@ -24,7 +24,8 @@ class UserService {
       take,
       where: {
         user_role: "user",
-select: {
+      },
+      select: {
         id: true,
         name: true,
         email: true,
