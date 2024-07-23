@@ -58,7 +58,7 @@ class MasterProductController {
 
     static async createProduct (req,res,next) {
         try {
-            const image = req.file;
+            const image = req.file ? req.file : null;
             const params = {...req.body,image};
             const product = await MasterProductService.createProduct(params);
             res.status(201).json({

@@ -70,6 +70,19 @@ class InventoryService {
     return inventory;
   }
 
+  static async getStockByProductId(params) {
+    const inventory = await prisma.inventory.findMany({
+      where : {
+        master_product_id : +params
+      },
+      include : {
+        warehouse : true
+      }
+    })
+    if(!inventory) throw({name : 'notFound', message : 'Inventory is Not Found'});
+    return inventory;
+  }
+
   static async sortHighest() {
     const data = await prisma.inventory.findMany();
 

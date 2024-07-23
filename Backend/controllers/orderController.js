@@ -1,15 +1,17 @@
 const OrderService = require("../services/orderService");
+const OrderService2 = require("../services/orderService2");
 class OrderController {
   // admin create order
   static async createOrder(req, res, next) {
     try {
-      const { user_id, payment_type, order_status, buyer_status } = req.body;
+      const { user_id, payment_type, order_status, buyer_status, products } = req.body;
 
-      const orderData = await OrderService.createOrder({
+      const orderData = await OrderService2.createOrder({
         user_id,
         payment_type,
         order_status,
         buyer_status,
+        products
       });
 
       res.status(201).json({
@@ -80,7 +82,7 @@ class OrderController {
       const { id } = req.params;
       const { order_status } = req.body;
 
-      const order = await OrderService.updateOrderStatus({
+      const order = await OrderService2.updateOrderStatus({
         id,
         order_status,
       });
@@ -94,18 +96,19 @@ class OrderController {
     }
   }
 
-  // admin update order
+  // user update order
   static async updateOrder(req, res, next) {
     try {
       const { id } = req.params;
-      const { user_id, payment_type, order_status, buyer_status } = req.body;
+      const { user_id, payment_type, order_status, buyer_status, products } = req.body;
 
-      const order = await OrderService.updateOrder({
+      const order = await OrderService2.updateOrder({
         id,
         user_id,
         payment_type,
         order_status,
         buyer_status,
+        products
       });
 
       res.status(200).json({
@@ -114,6 +117,20 @@ class OrderController {
       });
     } catch (err) {
       next(err);
+    }
+  }
+
+  static async sendOrder(req,res,next) {
+    try {
+      const {id} = req.params;
+      const {user_id} = req.body;
+      const orderData = await OrderService2.sendOrder({id,user_id})
+      res.status(200).json({
+        message : 'Success send order',
+        data : orderData
+      }) 
+    } catch(err) {
+      next(err)
     }
   }
 
