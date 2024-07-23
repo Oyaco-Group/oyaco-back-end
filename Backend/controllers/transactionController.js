@@ -13,6 +13,17 @@ class TransactionController {
     }
   }
 
+  static async updateExpirationStatus(req, res, next) {
+    try {
+      await TransactionService.updateExpirationStatus();
+      res.status(200).json({
+        message: "Expiration status updated successfully",
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
+
   static async getAllTransactions(req, res, next) {
     try {
       const page = req.query.page;
@@ -45,8 +56,13 @@ class TransactionController {
   static async getOutgoingTransactionsByWarehouseId(req, res, next) {
     try {
       const { warehouseId } = req.params;
-      const transactions = await TransactionService.getOutgoingTransactionsByWarehouseId(warehouseId);
-  
+      const { page } = req.query;
+      const transactions =
+        await TransactionService.getOutgoingTransactionsByWarehouseId(
+          warehouseId,
+          page
+        );
+
       res.status(200).json({
         message: "success get transactions by warehouse id",
         data: transactions,
@@ -59,8 +75,13 @@ class TransactionController {
   static async getIncomingTransactionsByWarehouseId(req, res, next) {
     try {
       const { warehouseId } = req.params;
-      const transactions = await TransactionService.getIncomingTransactionsByWarehouseId(warehouseId);
-  
+      const { page } = req.query;
+      const transactions =
+        await TransactionService.getIncomingTransactionsByWarehouseId(
+          warehouseId,
+          page
+        );
+
       res.status(200).json({
         message: "success get transactions by warehouse id",
         data: transactions,
@@ -94,6 +115,20 @@ class TransactionController {
     }
   }
 
+  static async delete(req, res, next) {
+    try {
+      const { id } = req.params;
+
+      const productMovement = await TransactionService.delete(id);
+
+      res.status(200).json({
+        message: "Transaction deleted",
+        data: productMovement,
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
 }
 
 // Contoh input postman:
