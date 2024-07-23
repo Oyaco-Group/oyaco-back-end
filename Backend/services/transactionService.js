@@ -1,4 +1,6 @@
 const prisma = require("../lib/prisma");
+const {sendEmailToAdmin} = require("../lib/nodeMailer");
+const { response } = require("express");
 
 class TransactionService {
   //Membuat transaction untuk dimasukkan ke productMovement
@@ -426,6 +428,41 @@ class TransactionService {
     });
 
     return productMovement;
+  }
+
+  static async expirationCheck() {
+    let expiredProducts = [];
+    // cron.schedule(
+    //   "0 0 * * *",
+    //   async () => {
+        try {
+          const today = new Date();
+          expiredProducts = await prisma.productMovement.findMany({
+            where: {
+              expiration_date: {
+                lt: today,
+              },
+              expiration_status: false,
+            },
+          });
+
+          console.log("Checking expired products.");
+
+          if (expiredProducts.length > 0) {
+            await sendEmailToAdmin(expiredProducts);
+          }else {
+            console.log("No expired products found.");
+          }
+          
+        } catch (error) {
+          console.error("Failed checking expired products:", error);
+        }
+    //   },
+    //   {
+    //     scheduled: true,
+    //     timezone: "Asia/Jakarta",
+    //   }
+    // );
   }
 }
 
