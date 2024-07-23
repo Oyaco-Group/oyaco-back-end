@@ -9,5 +9,7 @@ router.get("/incoming/:warehouseId", TransController.getOutgoingTransactionsByWa
 router.get("/sort/highest", TransController.sortHighest);
 router.get("/sort/lowest", TransController.sortLowest);
 router.post("/", TransController.createTrans);
+router.put("/expStatus", TransController.updateExpirationStatus);
+router.delete("/:id", TransController.delete);
 
 module.exports = router;

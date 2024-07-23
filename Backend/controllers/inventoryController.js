@@ -7,7 +7,6 @@ class InventoryController {
         master_product_id,
         warehouse_id,
         quantity,
-        expiration_status,
         isdelete,
       } = req.body;
 
@@ -15,7 +14,6 @@ class InventoryController {
         master_product_id,
         warehouse_id,
         quantity,
-        expiration_status,
         isdelete,
       });
 
@@ -102,7 +100,6 @@ class InventoryController {
         master_product_id,
         warehouse_id,
         quantity,
-        expiration_status,
         isdelete,
       } = req.body;
 
@@ -111,7 +108,6 @@ class InventoryController {
         master_product_id,
         warehouse_id,
         quantity,
-        expiration_status,
         isdelete,
       });
 

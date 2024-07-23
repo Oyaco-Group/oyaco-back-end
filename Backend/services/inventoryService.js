@@ -6,7 +6,6 @@ class InventoryService {
       master_product_id,
       warehouse_id,
       quantity,
-      expiration_status,
       isdelete,
     } = data;
 
@@ -32,7 +31,6 @@ class InventoryService {
         master_product_id : +master_product_id,
         warehouse_id : +warehouse_id,
         quantity : +quantity,
-        expiration_status : expirationStatusBoolean,
         isdelete : isdeleteBoolean
       },
     });
@@ -114,7 +112,6 @@ class InventoryService {
       master_product_id,
       warehouse_id,
       quantity,
-      expiration_status,
       isdelete,
     } = params;
 
@@ -158,7 +155,6 @@ class InventoryService {
         master_product_id: master_product_id,
         warehouse_id: warehouse_id,
         quantity: quantity,
-        expiration_status: expiration_status,
         isdelete: isdelete,
       },
     });

@@ -172,14 +172,12 @@ async function main() {
         master_product_id: 1,
         warehouse_id: 2, // Tolong lihat destination di productMovement
         quantity: 10,
-        expiration_status: false,
         isdelete: false,
       },
       {
         master_product_id: 2,
         warehouse_id: 2, // Tolong lihat destination di productMovement
         quantity: 50,
-        expiration_status: false,
         isdelete: false,
       },
     ];
