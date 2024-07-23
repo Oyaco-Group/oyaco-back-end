@@ -56,9 +56,11 @@ class TransactionController {
   static async getOutgoingTransactionsByWarehouseId(req, res, next) {
     try {
       const { warehouseId } = req.params;
+      const { page } = req.query;
       const transactions =
         await TransactionService.getOutgoingTransactionsByWarehouseId(
-          warehouseId
+          warehouseId,
+          page
         );
 
       res.status(200).json({
@@ -73,9 +75,11 @@ class TransactionController {
   static async getIncomingTransactionsByWarehouseId(req, res, next) {
     try {
       const { warehouseId } = req.params;
+      const { page } = req.query;
       const transactions =
         await TransactionService.getIncomingTransactionsByWarehouseId(
-          warehouseId
+          warehouseId,
+          page
         );
 
       res.status(200).json({
