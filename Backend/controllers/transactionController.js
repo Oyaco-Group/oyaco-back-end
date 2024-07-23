@@ -129,6 +129,17 @@ class TransactionController {
       next(err);
     }
   }
+
+  static async expirationCheck(req, res, next) {
+    try {
+      await TransactionService.expirationCheck();
+      res.status(200).json({
+        message: "Expiration check completed successfully",
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
 }
 
 // Contoh input postman:

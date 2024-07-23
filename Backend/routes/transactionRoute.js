@@ -2,6 +2,8 @@ const express = require("express");
 const router = express.Router();
 const TransController = require("../controllers/transactionController");
 
+
+router.get("/expirationcheck", TransController.expirationCheck)
 router.get("/", TransController.getAllTransactions);
 router.get("/:id", TransController.getTransactionById);
 router.get("/outgoing/:warehouseId", TransController.getOutgoingTransactionsByWarehouseId);
