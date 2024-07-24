@@ -9,7 +9,6 @@ class InventoryService {
       isdelete,
     } = data;
 
-    const expirationStatusBoolean = (expiration_status === true);
     const isdeleteBoolean = (isdelete === true);
 
     const existingInventory = await prisma.inventory.findFirst({
