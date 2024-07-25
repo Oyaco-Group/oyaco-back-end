@@ -20,6 +20,11 @@ class TransactionService {
         expiration_status,
       } = data;
 
+      if (!quantity || isNaN(quantity)) {
+        const errorMessage = `Invalid quantity input`;
+        throw { name: "invalidInput", message: errorMessage };
+    }
+
       // Calculate expiration date if not provided
       const arrivalDate = new Date();
       const calculatedExpirationDate = new Date(
@@ -106,7 +111,7 @@ class TransactionService {
           },
           data: {
             quantity: {
-              decrement: quantity,
+              decrement: parseInt(quantity),
             },
             isdelete: originInventory.quantity - quantity <= 0 ? true : false,
           },
@@ -175,7 +180,7 @@ class TransactionService {
           },
           data: {
             quantity: {
-              increment: quantity,
+              increment: parseInt(quantity),
             },
             isdelete: false,
           },
