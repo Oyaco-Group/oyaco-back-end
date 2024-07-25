@@ -14,7 +14,7 @@ const transactionsRoutes = require("./transactionRoute.js");
 const complaintRoutes = require("./complaintRoute.js");
 
 router.use("/api/auth", authRoute);
-//router.use(authentication);
+router.use(authentication);
 router.use(
   "/api/images",
   express.static(path.join(__dirname, "../assets/masterProduct"))
