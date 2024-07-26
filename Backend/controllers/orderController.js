@@ -6,7 +6,7 @@ class OrderController {
     try {
       const { user_id, payment_type, order_status, buyer_status, products } = req.body;
 
-      const orderData = await OrderService2.createOrder({
+      const orderData = await OrderService.createOrder({
         user_id,
         payment_type,
         order_status,
@@ -82,7 +82,7 @@ class OrderController {
       const { id } = req.params;
       const { order_status } = req.body;
 
-      const order = await OrderService2.updateOrderStatus({
+      const order = await OrderService.updateOrderStatus({
         id,
         order_status,
       });
@@ -102,7 +102,7 @@ class OrderController {
       const { id } = req.params;
       const { user_id, payment_type, order_status, buyer_status, products } = req.body;
 
-      const order = await OrderService2.updateOrder({
+      const order = await OrderService.updateOrder({
         id,
         user_id,
         payment_type,
@@ -123,8 +123,8 @@ class OrderController {
   static async sendOrder(req,res,next) {
     try {
       const {id} = req.params;
-      const {user_id} = req.body;
-      const orderData = await OrderService2.sendOrder({id,user_id})
+      const params = {...req.body,id}
+      const orderData = await OrderService.sendOrder(params)
       res.status(200).json({
         message : 'Success send order',
         data : orderData
