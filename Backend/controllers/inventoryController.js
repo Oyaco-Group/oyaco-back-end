@@ -3,12 +3,7 @@ const InventoryService = require("../services/inventoryService");
 class InventoryController {
   static async createStock(req, res, next) {
     try {
-      const {
-        master_product_id,
-        warehouse_id,
-        quantity,
-        isdelete,
-      } = req.body;
+      const { master_product_id, warehouse_id, quantity, isdelete } = req.body;
 
       const inventory = await InventoryService.createStock({
         master_product_id,
@@ -31,7 +26,7 @@ class InventoryController {
       const inventory = await InventoryService.getAllStock(page);
 
       res.status(200).json({
-        massage: "success get all stock",
+        message: "success get all stock",
         data: inventory,
       });
     } catch (err) {
@@ -80,9 +75,10 @@ class InventoryController {
 
   static async getStockByWarehouse(req, res, next) {
     try {
-      const { id } = req.params;
+      const page = req.query.page
+      const { warehouse_id } = req.params;
 
-      const inventory = await InventoryService.getStockByWarehouse(id);
+      const inventory = await InventoryService.getStockByWarehouse(warehouse_id, page);
 
       res.status(200).json({
         message: "success get stock",
@@ -96,12 +92,7 @@ class InventoryController {
   static async editStock(req, res, next) {
     try {
       const { id } = req.params;
-      const {
-        master_product_id,
-        warehouse_id,
-        quantity,
-        isdelete,
-      } = req.body;
+      const { master_product_id, warehouse_id, quantity, isdelete } = req.body;
 
       const editStock = await InventoryService.editStock({
         id,
@@ -135,10 +126,6 @@ class InventoryController {
       next(err);
     }
   }
-
-
-  
-
 }
 
 module.exports = InventoryController;
