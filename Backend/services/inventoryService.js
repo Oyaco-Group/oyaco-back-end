@@ -4,11 +4,7 @@ class InventoryService {
   static async createStock(data) {
     const { master_product_id, warehouse_id, quantity, isdelete } = data;
 
-<<<<<<< HEAD
     const isdeleteBoolean = (isdelete === true);
-=======
-    const isdeleteBoolean = isdelete === true;
->>>>>>> 2ec4f2edc140574d5a05b6a89b0372211a947327
 
     const existingInventory = await prisma.inventory.findFirst({
       where: {
