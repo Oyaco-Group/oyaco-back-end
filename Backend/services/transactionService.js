@@ -356,7 +356,6 @@ class TransactionService {
   static async getIncomingTransactionsByWarehouseId(warehouseId, page) {
     const limit = 5;
     const skip = (page - 1) * limit;
-    
     const transactions = await prisma.productMovement.findMany({
       where: {
         AND: [
