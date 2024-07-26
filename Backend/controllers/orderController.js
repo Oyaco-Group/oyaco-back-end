@@ -3,13 +3,14 @@ class OrderController {
   // admin create order
   static async createOrder(req, res, next) {
     try {
-      const { user_id, payment_type, order_status, buyer_status } = req.body;
+      const { user_id, payment_type, order_status, buyer_status, products } = req.body;
 
       const orderData = await OrderService.createOrder({
         user_id,
         payment_type,
         order_status,
         buyer_status,
+        products
       });
 
       res.status(201).json({
@@ -94,11 +95,11 @@ class OrderController {
     }
   }
 
-  // admin update order
+  // user update order
   static async updateOrder(req, res, next) {
     try {
       const { id } = req.params;
-      const { user_id, payment_type, order_status, buyer_status } = req.body;
+      const { user_id, payment_type, order_status, buyer_status, products } = req.body;
 
       const order = await OrderService.updateOrder({
         id,
@@ -106,6 +107,7 @@ class OrderController {
         payment_type,
         order_status,
         buyer_status,
+        products
       });
 
       res.status(200).json({
@@ -114,6 +116,20 @@ class OrderController {
       });
     } catch (err) {
       next(err);
+    }
+  }
+
+  static async sendOrder(req,res,next) {
+    try {
+      const {id} = req.params;
+      const params = {...req.body,id}
+      const orderData = await OrderService.sendOrder(params)
+      res.status(200).json({
+        message : 'Success send order',
+        data : orderData
+      }) 
+    } catch(err) {
+      next(err)
     }
   }
 
