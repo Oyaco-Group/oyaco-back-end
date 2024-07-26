@@ -20,6 +20,11 @@ class TransactionService {
         expiration_status,
       } = data;
 
+      if (!quantity || isNaN(quantity)) {
+        const errorMessage = `Invalid quantity input`;
+        throw { name: "invalidInput", message: errorMessage };
+    }
+
       // Calculate expiration date if not provided
       const arrivalDate = new Date();
       const calculatedExpirationDate = new Date(
@@ -106,7 +111,7 @@ class TransactionService {
           },
           data: {
             quantity: {
-              decrement: quantity,
+              decrement: parseInt(quantity),
             },
             isdelete: originInventory.quantity - quantity <= 0 ? true : false,
           },
@@ -175,7 +180,7 @@ class TransactionService {
           },
           data: {
             quantity: {
-              increment: quantity,
+              increment: parseInt(quantity),
             },
             isdelete: false,
           },
@@ -260,7 +265,7 @@ class TransactionService {
             user_id: product.user_id,
             master_product_id: product.master_product_id,
             inventory_id: inventory.id,
-            movement_type: "Out",
+            movement_type: "Removed",
             origin: product.destination,
             destination: null,
             quantity: product.quantity,
@@ -331,7 +336,7 @@ class TransactionService {
           {
             movement_type: {
               mode: "insensitive",
-              equals: "Out",
+              in: ["Out", "Removed"],
             },
           },
         ],
@@ -351,7 +356,6 @@ class TransactionService {
   static async getIncomingTransactionsByWarehouseId(warehouseId, page) {
     const limit = 5;
     const skip = (page - 1) * limit;
-    
     const transactions = await prisma.productMovement.findMany({
       where: {
         AND: [
