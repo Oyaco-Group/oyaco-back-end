@@ -1,5 +1,4 @@
 const OrderService = require("../services/orderService");
-const OrderService2 = require("../services/orderService2");
 class OrderController {
   // admin create order
   static async createOrder(req, res, next) {
