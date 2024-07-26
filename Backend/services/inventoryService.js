@@ -2,38 +2,31 @@ const prisma = require("../lib/prisma");
 
 class InventoryService {
   static async createStock(data) {
-    const {
-      master_product_id,
-      warehouse_id,
-      quantity,
-      expiration_status,
-      isdelete,
-    } = data;
+    const { master_product_id, warehouse_id, quantity, isdelete } = data;
 
-    const expirationStatusBoolean = (expiration_status === true);
-    const isdeleteBoolean = (isdelete === true);
+    // const expirationStatusBoolean = (expiration_status === true);
+    const isdeleteBoolean = isdelete === true;
 
     const existingInventory = await prisma.inventory.findFirst({
-      where : {
-        AND : [
-          {warehouse_id : +warehouse_id},
-          {master_product_id : +master_product_id},
-        ]
+      where: {
+        AND: [
+          { warehouse_id: +warehouse_id },
+          { master_product_id: +master_product_id },
+        ],
       },
-    })
-    if(existingInventory) {
-      throw({
-        name : 'failedToCreate', 
-        message : 'Inventory is Already Exist, Please Check Inventory List'
-      })
+    });
+    if (existingInventory) {
+      throw {
+        name: "failedToCreate",
+        message: "Inventory is Already Exist, Please Check Inventory List",
+      };
     }
     const inventory = await prisma.inventory.create({
       data: {
-        master_product_id : +master_product_id,
-        warehouse_id : +warehouse_id,
-        quantity : +quantity,
-        expiration_status : expirationStatusBoolean,
-        isdelete : isdeleteBoolean
+        master_product_id: +master_product_id,
+        warehouse_id: +warehouse_id,
+        quantity: +quantity,
+        isdelete: isdeleteBoolean,
       },
     });
     return inventory;
@@ -109,14 +102,7 @@ class InventoryService {
   }
 
   static async editStock(params) {
-    const {
-      id,
-      master_product_id,
-      warehouse_id,
-      quantity,
-      expiration_status,
-      isdelete,
-    } = params;
+    const { id, master_product_id, warehouse_id, quantity, isdelete } = params;
 
     const invetoryExist = await prisma.inventory.findUnique({
       where: {
@@ -129,27 +115,27 @@ class InventoryService {
     }
 
     const checkInventory = await prisma.inventory.findFirst({
-      where : {
-        AND : [
-          {warehouse_id : +warehouse_id},
-          {master_product_id : +master_product_id}
-        ]
-      }
-    })
+      where: {
+        AND: [
+          { warehouse_id: +warehouse_id },
+          { master_product_id: +master_product_id },
+        ],
+      },
+    });
 
-    if(+warehouse_id !== +invetoryExist.warehouse_id) {
-      if(checkInventory) 
-        throw({
-          name : 'failedToUpdate',
-          message : 'Inventory is Already Exist, Please Check Inventory List'
-        })
+    if (+warehouse_id !== +invetoryExist.warehouse_id) {
+      if (checkInventory)
+        throw {
+          name: "failedToUpdate",
+          message: "Inventory is Already Exist, Please Check Inventory List",
+        };
     }
-    if(+master_product_id !== +invetoryExist.master_product_id) {
-      if(checkInventory)
-        throw({
-          name : 'failedToUpdate',
-          message : 'Inventory is Already Exist, Please Check Inventory List'
-        })
+    if (+master_product_id !== +invetoryExist.master_product_id) {
+      if (checkInventory)
+        throw {
+          name: "failedToUpdate",
+          message: "Inventory is Already Exist, Please Check Inventory List",
+        };
     }
 
     const inventory = await prisma.inventory.update({
@@ -158,7 +144,6 @@ class InventoryService {
         master_product_id: master_product_id,
         warehouse_id: warehouse_id,
         quantity: quantity,
-        expiration_status: expiration_status,
         isdelete: isdelete,
       },
     });
