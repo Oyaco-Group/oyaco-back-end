@@ -265,7 +265,7 @@ class TransactionService {
             user_id: product.user_id,
             master_product_id: product.master_product_id,
             inventory_id: inventory.id,
-            movement_type: "Out",
+            movement_type: "Removed",
             origin: product.destination,
             destination: null,
             quantity: product.quantity,
@@ -336,7 +336,7 @@ class TransactionService {
           {
             movement_type: {
               mode: "insensitive",
-              equals: "Out",
+              in: ["Out", "Removed"],
             },
           },
         ],
