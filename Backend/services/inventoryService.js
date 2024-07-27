@@ -4,7 +4,7 @@ class InventoryService {
   static async createStock(data) {
     const { master_product_id, warehouse_id, quantity, isdelete } = data;
 
-    const isdeleteBoolean = (isdelete === true);
+    const isdeleteBoolean = isdelete === true;
 
     const existingInventory = await prisma.inventory.findFirst({
       where: {
@@ -75,6 +75,19 @@ class InventoryService {
     return inventory;
   }
 
+  static async getStockByProductId(params) {
+    const inventory = await prisma.inventory.findMany({
+      where : {
+        master_product_id : +params
+      },
+      include : {
+        warehouse : true
+      }
+    })
+    if(!inventory) throw({name : 'notFound', message : 'Inventory is Not Found'});
+    return inventory;
+  }
+
   static async sortHighest() {
     const data = await prisma.inventory.findMany();
 
@@ -142,6 +155,13 @@ class InventoryService {
           message: "Inventory is Already Exist, Please Check Inventory List",
         };
     }
+    // if (+master_product_id !== +invetoryExist.master_product_id) {
+    //   if (checkInventory)
+    //     throw {
+    //       name: "failedToUpdate",
+    //       message: "Inventory is Already Exist, Please Check Inventory List",
+    //     };
+    // }
 
     const inventory = await prisma.inventory.update({
       where: { id: parseInt(id) },

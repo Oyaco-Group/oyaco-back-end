@@ -64,7 +64,7 @@ model order_item {
   updated_at        DateTime      @updatedAt
   order             Order         @relation(fields: [order_id], references: [id], onUpdate: Cascade, onDelete: Cascade)
   master_product    MasterProduct @relation(fields: [master_product_id], references: [id], onUpdate: Cascade, onDelete: Cascade)
-  inventory         Inventory     @relation(fields: [inventory_id], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  inventory         Inventory?     @relation(fields: [inventory_id], references: [id], onUpdate: Cascade, onDelete: Cascade)
 }
 
 model Warehouse {

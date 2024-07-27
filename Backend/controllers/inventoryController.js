@@ -89,6 +89,19 @@ class InventoryController {
     }
   }
 
+  static async getStockByProductId(req, res, next) {
+    try{
+      const {id} = req.params;
+      const inventory = await InventoryService.getStockByProductId(id);
+      res.status(200).json(({
+        message : 'success get stock',
+        data : inventory
+      }))
+    } catch(err) {
+      next(err);
+    }
+  }
+
   static async editStock(req, res, next) {
     try {
       const { id } = req.params;

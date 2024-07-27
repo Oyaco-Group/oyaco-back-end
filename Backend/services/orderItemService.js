@@ -37,7 +37,7 @@ class OrderItemServicer {
       where: { id: parseInt(inventoryItem.id) },
       data: {
         master_product_id: inventoryItem.master_product_id,
-        wawrehouse_id: inventoryItem.wawrehouse_id,
+        wawrehouse_id: inventoryItem.warehouse_id,
         quantity: inventoryItem.quantity - quantity,
         expiration_status: inventoryItem.expiration_status,
       },
@@ -94,41 +94,71 @@ class OrderItemServicer {
       throw { name: "invalidInput", message: "Inventory item not found" };
     }
 
-    if (
-      inventoryItem.id !== inventory_id ||
-      inventoryItem.master_product_id !== master_product_id
-    ) {
-      throw { name: "invalidInput", message: "Product not match" };
-    } else if (inventoryItem.quantity < quantity) {
-      throw { name: "invalidInput", message: "Product quantity not enough" };
-    }
-
     const orderItem = await prisma.order_item.findUnique({
       where: { id: parseInt(id) },
     });
 
     if (!orderItem) throw { name: "notFound", message: "Order item not found" };
 
-    const updateOrderItem = await prisma.order_item.update({
-      where: { id: parseInt(id) },
-      data: {
-        order_id: order_id,
-        master_product_id: master_product_id,
-        inventory_id: inventory_id,
-        quantity: quantity,
-      },
-    });
+    if(inventory_id !== orderItem.inventory_id) {
+        const updateOrderItem = await prisma.order_item.update({
+          where : {id : parseInt(id)},
+          data : {
+            order_id : order_id,
+            master_product_id : master_product_id,
+            inventory_id : inventory_id,
+            quantity : quantity
+          }
+        })
 
-    const quantityDifference = quantity - orderItem.quantity;
+        const oldInventory = await prisma.inventory.findUnique({
+          where : {id : orderItem.inventory_id}
+        })
+        const oldQuantity = oldInventory.quantity;
+        const returnQuantity = orderItem.quantity;
 
-    const updateInventory = await prisma.inventory.update({
-      where: { id: parseInt(inventoryItem.id) },
-      data: {
-        quantity: inventoryItem.quantity - quantityDifference,
-      },
-    });
+        const updateOldInventory = await prisma.inventory.update({
+          where : {id : orderItem.inventory_id},
+          data : {
+            quantity : oldQuantity + returnQuantity
+          }
+        })
 
-    return { updateOrderItem, updateInventory };
+        const newQuantity = inventoryItem.quantity;
+
+        const updateNewInventory = await prisma.inventory.update({
+          where : {id : inventory_id},
+          data : {
+            quantity : newQuantity - quantity
+          }
+        })
+
+        return {updateOrderItem, updateOldInventory, updateNewInventory}
+
+
+    } else {
+        const updateOrderItem = await prisma.order_item.update({
+          where: { id: parseInt(id) },
+          data: {
+            order_id: order_id,
+            master_product_id: master_product_id,
+            inventory_id: inventory_id,
+            quantity: quantity,
+          },
+        });
+    
+        const quantityDifference = quantity - orderItem.quantity;
+    
+        const updateInventory = await prisma.inventory.update({
+          where: { id: parseInt(inventoryItem.id) },
+          data: {
+            quantity: inventoryItem.quantity - quantityDifference,
+          },
+        });
+    
+        return { updateOrderItem, updateInventory };
+    }
+
   }
 
   static async deleteOrderItem(id) {
