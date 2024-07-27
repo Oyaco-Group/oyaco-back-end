@@ -6,7 +6,8 @@ router.get("/stock", InventoryController.getAllStock);
 router.get("/stock/:id", InventoryController.getStockById);
 router.get("/highest", InventoryController.sortHighest);
 router.get("/lowest", InventoryController.sortLowest);
-router.get("/warestock/:warehouse_id", InventoryController.getStockByWarehouse);
+router.get("/warestock/:id", InventoryController.getStockByWarehouse);
+router.get("/product/:id", InventoryController.getStockByProductId)
 router.post("/create", InventoryController.createStock);
 router.put("/edit/:id", InventoryController.editStock);
 router.delete("/stock/:id", InventoryController.delete);
