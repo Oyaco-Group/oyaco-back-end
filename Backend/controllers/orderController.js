@@ -63,17 +63,29 @@ class OrderController {
   }
   static async getOneOrderUser(req, res, next) {
     try {
+      const page = parseInt(req.query.page) || 1;
+      const pageSize = parseInt(req.query.pageSize) || 5;
+
+      const skip = (page - 1) * pageSize;
+      const take = pageSize;
       const { user_id } = req.params;
-      const order = await OrderService.getOneOrderUser(user_id);
+      const orders = await OrderService.getOneOrderUser({user_id, skip, take});
 
       res.status(200).json({
-        message: "Success get order",
-        data: order,
+        message: "Success get all orders",
+        data: orders.orders,
+        metadata: {
+          total: orders.totalOrders,
+          page: page,
+          pageSize: pageSize,
+          totalPages: Math.ceil(orders.totalOrders / pageSize),
+        },
       });
     } catch (err) {
       next(err);
     }
   }
+
   // user update status order
   static async updateOrderStatus(req, res, next) {
     try {
