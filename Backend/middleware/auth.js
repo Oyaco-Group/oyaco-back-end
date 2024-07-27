@@ -18,13 +18,10 @@ const authentication = async (req, res, next) => {
     }
 
     const decoded = verifyToken(token);
-    console.log("Decoded Token:", decoded);
 
     const user = await prisma.user.findUnique({
       where: { id: parseInt(decoded.id, 10) },
     });
-
-    console.log(user);
 
     if (!user) {
       return res.status(401).json({ message: "Unauthorized: User not found" });
@@ -43,8 +40,13 @@ const authorization = (req, res, next) => {
     const { role } = req.user;
     if (role === "admin") {
       return next();
+    } else if (role === null || role !== "admin") {
+      throw { name: "unAuthorized", message: "User Unauthorized" };
+    } else {
+      return res
+        .status(403)
+        .json({ message: "Forbidden: User not authorized" });
     }
-    return res.status(403).json({ message: "Forbidden: User not authorized" });
   } catch (error) {
     next(error);
   }

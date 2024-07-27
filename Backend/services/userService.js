@@ -38,12 +38,10 @@ class UserService {
 
   static async getUserById(id) {
     try {
-      console.log("Received ID:", id); // Debugging line
-      const userId = parseInt(id, 10); // Ensure the ID is parsed correctly
+      const userId = parseInt(id, 10);
       if (isNaN(userId)) {
         throw new Error("Invalid user ID");
       }
-      console.log("User ID in getUserById Service:", userId); // Debugging line
       const user = await prisma.user.findUnique({
         where: {
           id: userId,
@@ -176,12 +174,10 @@ class UserService {
 
   static async getProfileUser(userId) {
     try {
-      console.log("Received User ID:", userId); // Debugging line
-      const id = parseInt(userId, 10); // Ensure the user ID is parsed correctly
+      const id = parseInt(userId, 10);
       if (isNaN(id)) {
         throw new Error("Invalid user ID");
       }
-      console.log("User ID in Service:", id);
       const userProfile = await prisma.user.findUnique({
         where: {
           id: id,
@@ -204,6 +200,80 @@ class UserService {
       console.error("Error in getProfileUser:", error);
       throw error;
     }
+  }
+
+  static async updateProfile(params) {
+    const { id, name, email, password, address, user_role, isdelete, image } =
+      params;
+    const isdeleteBoolean = isdelete === "true";
+    const image_url = image ? image.filename : null;
+
+    const existingUser = await prisma.user.findUnique({ where: { id: +id } });
+    if (!existingUser) {
+      if (image) await unlinkAsync(image.path);
+      throw {
+        name: "failedToUpdate",
+        message: "Update is Failed, No Existing User",
+      };
+    }
+
+    if (!name || !email || !address) {
+      if (image) await unlinkAsync(image.path);
+      throw {
+        name: "failedToUpdate",
+        message: "Please Input Every Field in Form",
+      };
+    }
+
+    const emailUser = await prisma.user.findUnique({ where: { email } });
+    if (emailUser && emailUser.id !== existingUser.id) {
+      if (image) await unlinkAsync(image.path);
+      throw { name: "failedToUpdate", message: "Email already used" };
+    }
+
+    if (
+      existingUser.image_url &&
+      image_url &&
+      existingUser.image_url !== image_url
+    ) {
+      await unlinkAsync(path.join("assets/user/", existingUser.image_url));
+    }
+
+    const hashedPassword = password
+      ? hashPassword(password)
+      : existingUser.password;
+
+    const user = await prisma.user.update({
+      where: { id: +id },
+      data: {
+        name,
+        email,
+        address,
+        user_role,
+        image_url,
+        password: hashedPassword,
+        isdelete: isdeleteBoolean,
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        address: true,
+        user_role: true,
+        image_url: true,
+      },
+    });
+
+    // Generate new tokens
+    const { accessToken, refreshToken } = generateToken(user);
+
+    // Update the user's refresh token
+    await prisma.user.update({
+      where: { id: +id },
+      data: { refreshToken },
+    });
+
+    return { user, accessToken, refreshToken };
   }
 }
 

@@ -1,6 +1,5 @@
 const jwt = require("jsonwebtoken");
 
-// Fungsi untuk menghasilkan token JWT
 const generateToken = (payload) => {
   return jwt.sign(payload, process.env.SECRET_KEY, {
     expiresIn: "1h",
@@ -8,7 +7,6 @@ const generateToken = (payload) => {
   });
 };
 
-// Fungsi untuk memverifikasi token JWT
 const verifyToken = (token) => {
   try {
     return jwt.verify(token, process.env.SECRET_KEY, {

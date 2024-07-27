@@ -15,5 +15,11 @@ router.put(
 router.delete("/delete/:id", UserController.deleteUser);
 router.get("/orderUser/:id", UserController.getOrderByUserId);
 router.get("/detail/profile", authentication, UserController.profileUser);
+router.put(
+  "/update/profile",
+  authentication,
+  uploadHandlerUser.single("image"),
+  UserController.updateProfile
+);
 
 module.exports = router;

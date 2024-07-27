@@ -27,7 +27,6 @@ router.use("/api/user", userRoute);
 router.use("/api/order", orderRoute);
 router.use("/api/masterProduct", masterProductRoutes);
 router.use("/api/orderitem", orderItemRoute);
-router.use("/api/masterProduct", masterProductRoutes);
 router.use("/api/categories", categoryRoutes);
 router.use("/api/warehouses", warehouseRoutes);
 router.use("/api/inventory", inventoryRoutes);

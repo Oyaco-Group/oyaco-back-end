@@ -265,7 +265,7 @@ class TransactionService {
             user_id: product.user_id,
             master_product_id: product.master_product_id,
             inventory_id: inventory.id,
-            movement_type: "Out",
+            movement_type: "Removed",
             origin: product.destination,
             destination: null,
             quantity: product.quantity,
@@ -336,7 +336,7 @@ class TransactionService {
           {
             movement_type: {
               mode: "insensitive",
-              equals: "Out",
+              in: ["Out", "Removed"],
             },
           },
         ],
@@ -356,7 +356,6 @@ class TransactionService {
   static async getIncomingTransactionsByWarehouseId(warehouseId, page) {
     const limit = 5;
     const skip = (page - 1) * limit;
-    
     const transactions = await prisma.productMovement.findMany({
       where: {
         AND: [
