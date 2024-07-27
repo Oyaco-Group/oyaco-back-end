@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
-const AuthController = require("../controllers/authController.js");
-const { uploadHandlerUser } = require("../lib/uploadImage.js");
+const AuthController = require("../controllers/authController");
+const { uploadHandlerUser } = require("../lib/uploadImage");
 
 router.post(
   "/register",
