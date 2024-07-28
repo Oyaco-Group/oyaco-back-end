@@ -3,7 +3,7 @@ const prisma = require("../lib/prisma");
 class dashboardService {
   static async getDashboardData() {
     try {
-      const users = await prisma.user.findMany({
+      const usersPromise = prisma.user.findMany({
         select: {
           id: true,
           name: true,
@@ -13,8 +13,9 @@ class dashboardService {
           created_at: true,
         },
       });
+      const usersCountPromise = prisma.user.count();
 
-      const masterProducts = await prisma.masterProduct.findMany({
+      const masterProductsPromise = prisma.masterProduct.findMany({
         select: {
           id: true,
           name: true,
@@ -28,8 +29,9 @@ class dashboardService {
           created_at: true,
         },
       });
+      const masterProductsCountPromise = prisma.masterProduct.count();
 
-      const orders = await prisma.order.findMany({
+      const ordersPromise = prisma.order.findMany({
         select: {
           id: true,
           payment_type: true,
@@ -44,8 +46,9 @@ class dashboardService {
           },
         },
       });
+      const ordersCountPromise = prisma.order.count();
 
-      const complaints = await prisma.complaint.findMany({
+      const complaintsPromise = prisma.complaint.findMany({
         select: {
           id: true,
           text: true,
@@ -68,8 +71,9 @@ class dashboardService {
           },
         },
       });
+      const complaintsCountPromise = prisma.complaint.count();
 
-      const productMovements = await prisma.productMovement.findMany({
+      const productMovementsPromise = prisma.productMovement.findMany({
         select: {
           id: true,
           movement_type: true,
@@ -90,12 +94,42 @@ class dashboardService {
           },
         },
       });
+      const productMovementsCountPromise = prisma.productMovement.count();
+
+      const [
+        users,
+        usersCount,
+        masterProducts,
+        masterProductsCount,
+        orders,
+        ordersCount,
+        complaints,
+        complaintsCount,
+        productMovements,
+        productMovementsCount,
+      ] = await Promise.all([
+        usersPromise,
+        usersCountPromise,
+        masterProductsPromise,
+        masterProductsCountPromise,
+        ordersPromise,
+        ordersCountPromise,
+        complaintsPromise,
+        complaintsCountPromise,
+        productMovementsPromise,
+        productMovementsCountPromise,
+      ]);
 
       return {
+        totalUsers: usersCount,
         users,
+        totalMasterProducts: masterProductsCount,
         masterProducts,
+        totalOrders: ordersCount,
         orders,
+        totalComplaints: complaintsCount,
         complaints,
+        totalProductMovements: productMovementsCount,
         productMovements,
       };
     } catch (error) {
