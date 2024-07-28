@@ -1,14 +1,20 @@
 const jwt = require("jsonwebtoken");
 
 const generateToken = (payload) => {
-  return jwt.sign(payload, process.env.SECRET_KEY);
+  return jwt.sign(payload, process.env.SECRET_KEY, {
+    expiresIn: "1h",
+    algorithm: "HS256",
+  });
 };
 
 const verifyToken = (token) => {
-  return jwt.verify(token, process.env.SECRET_KEY);
+  try {
+    return jwt.verify(token, process.env.SECRET_KEY, {
+      algorithms: ["HS256"],
+    });
+  } catch (error) {
+    throw new Error("Invalid or expired token");
+  }
 };
 
-module.exports = {
-  generateToken,
-  verifyToken,
-};
+module.exports = { generateToken, verifyToken };

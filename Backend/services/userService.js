@@ -36,27 +36,42 @@ class UserService {
     return { users, total_user, total_page };
   }
 
-  static async getUserById(params) {
-    const user = await prisma.user.findUnique({
-      where: {
-        id: +params,
-      },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        address: true,
-        user_role: true,
-        image_url: true,
-      },
-    });
-    return user;
+  static async getUserById(id) {
+    try {
+      const userId = parseInt(id, 10);
+      if (isNaN(userId)) {
+        throw new Error("Invalid user ID");
+      }
+      const user = await prisma.user.findUnique({
+        where: {
+          id: userId,
+        },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          address: true,
+          user_role: true,
+          image_url: true,
+        },
+      });
+      if (isNaN(id)) {
+        throw new Error("Invalid user ID");
+      }
+      if (!user) {
+        throw new Error("User not found");
+      }
+      return user;
+    } catch (error) {
+      console.error("Error in getUserById:", error); // Debugging line
+      throw error;
+    }
   }
 
-  static async getOrderByUserId(params) {
+  static async getOrderByUserId(id) {
     const order = await prisma.user.findUnique({
       where: {
-        id: +params,
+        id: +id,
       },
       select: {
         id: true,
@@ -73,83 +88,45 @@ class UserService {
     const { id, name, email, password, address, user_role, isdelete, image } =
       params;
     const isdeleteBoolean = isdelete === "true";
-    const image_url = image ? image.filename : "";
-    let imagePath;
+    const image_url = image ? image.filename : null;
 
-    // Find the existing user to update
-    const existingUser = await prisma.user.findUnique({
-      where: {
-        id: +id,
-      },
-    });
-
+    const existingUser = await prisma.user.findUnique({ where: { id: +id } });
     if (!existingUser) {
-      if (image) {
-        await unlinkAsync(image.path);
-      }
+      if (image) await unlinkAsync(image.path);
       throw {
         name: "failedToUpdate",
         message: "Update is Failed, No Existing User",
       };
     }
 
-    // If image is provided, handle file
-    if (image) {
-      imagePath = image.path;
-    } else {
-      imagePath = null;
-    }
-
-    // Validate input
     if (!name || !email || !address) {
-      if (image) {
-        await unlinkAsync(imagePath);
-      }
+      if (image) await unlinkAsync(image.path);
       throw {
         name: "failedToUpdate",
         message: "Please Input Every Field in Form",
       };
     }
 
-    // Check if the email is already used by another user
-    const emailUser = await prisma.user.findUnique({
-      where: {
-        email: email,
-      },
-    });
-
+    const emailUser = await prisma.user.findUnique({ where: { email } });
     if (emailUser && emailUser.id !== existingUser.id) {
-      if (image) {
-        await unlinkAsync(imagePath);
-      }
-      if (existingUser.image_url) {
-        await unlinkAsync(
-          `${path.join("assets/user/", existingUser.image_url)}`
-        );
-      }
-      throw {
-        name: "failedToUpdate",
-        message: "Email already used",
-      };
+      if (image) await unlinkAsync(image.path);
+      throw { name: "failedToUpdate", message: "Email already used" };
     }
 
-    // Handle image removal if changed
     if (
       existingUser.image_url &&
       image_url &&
       existingUser.image_url !== image_url
     ) {
-      await unlinkAsync(`${path.join("assets/user/", existingUser.image_url)}`);
+      await unlinkAsync(path.join("assets/user/", existingUser.image_url));
     }
 
-    // Hash password
-    const hashedPassword = hashPassword(password);
+    const hashedPassword = password
+      ? hashPassword(password)
+      : existingUser.password;
 
-    // Update user
     const user = await prisma.user.update({
-      where: {
-        id: +id,
-      },
+      where: { id: +id },
       data: {
         name,
         email,
@@ -170,24 +147,20 @@ class UserService {
     return user;
   }
 
-  static async deleteUser(params) {
-    const existingUser = await prisma.user.findUnique({
-      where: {
-        id: +params,
-      },
-    });
+  static async deleteUser(id) {
+    const existingUser = await prisma.user.findUnique({ where: { id: +id } });
     if (!existingUser)
       throw {
         name: "failedToDelete",
-        message: "Can not Delete, User is Not Found",
+        message: "Cannot delete, User not found",
       };
+
     if (existingUser.image_url) {
-      await unlinkAsync(existingUser.image_url);
+      await unlinkAsync(path.join("assets/user/", existingUser.image_url));
     }
+
     const user = await prisma.user.delete({
-      where: {
-        id: +params,
-      },
+      where: { id: +id },
       select: {
         id: true,
         name: true,
@@ -195,7 +168,112 @@ class UserService {
         address: true,
       },
     });
+
     return user;
+  }
+
+  static async getProfileUser(userId) {
+    try {
+      const id = parseInt(userId, 10);
+      if (isNaN(id)) {
+        throw new Error("Invalid user ID");
+      }
+      const userProfile = await prisma.user.findUnique({
+        where: {
+          id: id,
+        },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          address: true,
+          user_role: true,
+          image_url: true,
+        },
+      });
+
+      if (!userProfile) {
+        throw new Error("User not found");
+      }
+      return userProfile;
+    } catch (error) {
+      console.error("Error in getProfileUser:", error);
+      throw error;
+    }
+  }
+
+  static async updateProfile(params) {
+    const { id, name, email, password, address, user_role, isdelete, image } =
+      params;
+    const isdeleteBoolean = isdelete === "true";
+    const image_url = image ? image.filename : null;
+
+    const existingUser = await prisma.user.findUnique({ where: { id: +id } });
+    if (!existingUser) {
+      if (image) await unlinkAsync(image.path);
+      throw {
+        name: "failedToUpdate",
+        message: "Update is Failed, No Existing User",
+      };
+    }
+
+    if (!name || !email || !address) {
+      if (image) await unlinkAsync(image.path);
+      throw {
+        name: "failedToUpdate",
+        message: "Please Input Every Field in Form",
+      };
+    }
+
+    const emailUser = await prisma.user.findUnique({ where: { email } });
+    if (emailUser && emailUser.id !== existingUser.id) {
+      if (image) await unlinkAsync(image.path);
+      throw { name: "failedToUpdate", message: "Email already used" };
+    }
+
+    if (
+      existingUser.image_url &&
+      image_url &&
+      existingUser.image_url !== image_url
+    ) {
+      await unlinkAsync(path.join("assets/user/", existingUser.image_url));
+    }
+
+    const hashedPassword = password
+      ? hashPassword(password)
+      : existingUser.password;
+
+    const user = await prisma.user.update({
+      where: { id: +id },
+      data: {
+        name,
+        email,
+        address,
+        user_role,
+        image_url,
+        password: hashedPassword,
+        isdelete: isdeleteBoolean,
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        address: true,
+        user_role: true,
+        image_url: true,
+      },
+    });
+
+    // Generate new tokens
+    const { accessToken, refreshToken } = generateToken(user);
+
+    // Update the user's refresh token
+    await prisma.user.update({
+      where: { id: +id },
+      data: { refreshToken },
+    });
+
+    return { user, accessToken, refreshToken };
   }
 }
 
