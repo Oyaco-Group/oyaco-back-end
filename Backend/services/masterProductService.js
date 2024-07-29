@@ -64,20 +64,21 @@ class MasterProductService {
 
   static async createProduct(params) {
     const { name, image, sku, price, category_id, isdelete } = params;
-    const image_url = image.filename;
-    const imagePath = image.path;
+    const image_url = !image ? 'no-image.jpg' : image.filename;
+
+    const imagePath = !image ? null : image.path;
     const existingProduct = await prisma.masterProduct.findFirst({
       where: { name },
     });
     if (existingProduct) {
-      await unlinkAsync(imagePath);
+      if(imagePath) await unlinkAsync(imagePath);
       throw { name: "failedToCreate", message: "Product has been Existed" };
     }
     const existingSKU = await prisma.masterProduct.findUnique({
       where: { sku },
     });
     if (existingSKU) {
-      await unlinkAsync(imagePath);
+      if(imagePath) await unlinkAsync(imagePath);
       throw { name: "failedToCreate", message: "SKU has been Existed" };
     }
     const isdeleteBoolean = isdelete === "true";
@@ -105,8 +106,10 @@ class MasterProductService {
   static async editProduct(params) {
     const { id } = params;
     const { name, image, category_id, price, sku, isdelete } = params;
-    const image_url = image.filename;
-    const imagePath = image.path;
+    const imageFilename = !image ? null : image.filename;
+    const imagePath = !image ? null : image.path;
+
+    let image_url;
     const isdeleteBoolean = isdelete === "true";
     const lowerCaseName = name.toLowerCase();
     const slugify = slug(lowerCaseName, "-");
@@ -115,8 +118,17 @@ class MasterProductService {
         id: +id,
       },
     });
+
+    if(!imageFilename) {
+      if(existingProductId.image) {
+        image_url = existingProductId.image
+      } else {
+        image_url = 'no-image.jpg'
+      }
+    } else image_url = imageFilename;
+
     if (!existingProductId) {
-      await unlinkAsync(imagePath);
+      if(imagePath) await unlinkAsync(imagePath);
       throw {
         name: "failedToUpdate",
         message: "Can not Update, product is Not Found",
@@ -127,7 +139,7 @@ class MasterProductService {
     });
     if (name !== existingProductId.name) {
       if (existingProduct) {
-        await unlinkAsync(imagePath);
+        if(imagePath) await unlinkAsync(imagePath);
         throw { name: "failedToUpdate", message: "Product has been Existed" };
       }
     }
@@ -136,14 +148,16 @@ class MasterProductService {
     });
     if (sku !== existingProductId.sku) {
       if (existingSKU) {
-        await unlinkAsync(imagePath);
+        if(imagePath) await unlinkAsync(imagePath);
         throw { name: "failedToUpdate", message: "SKU has been Existed" };
       }
     }
     if (existingProductId.image) {
-      await unlinkAsync(
-        `${path.join("assets/masterProduct/", existingProductId.image)}`
-      );
+      if(existingProductId.image !== 'no-image.jpg') {
+        await unlinkAsync(
+          `${path.join("assets/masterProduct/", existingProductId.image)}`
+        );
+      }
     }
     const product = await prisma.masterProduct.update({
       where: {
@@ -174,12 +188,39 @@ class MasterProductService {
         message: "Can not Delete, Product is Not Found",
       };
     // await unlinkAsync(existingProduct.image);
-    const product = await prisma.masterProduct.delete({
-      where: {
-        id: +params,
-      },
-    });
-    return product;
+    const inventory = await prisma.inventory.findMany({
+      where : {
+        master_product_id : +params
+      }
+    })
+
+    const checkDelete = (arr) => {
+      let deleteArray = [];
+      for(const obj of arr) {
+        if(obj.quantity === 0) {
+          deleteArray.push(true);
+        } else {
+          deleteArray.push(false);
+        }
+      }
+      const decisionDelete = deleteArray.every(check => check === true)
+
+      return decisionDelete;
+    }
+
+    const decisionDelete = checkDelete(inventory);
+    
+    if(decisionDelete) {
+      const product = await prisma.masterProduct.delete({
+        where: {
+          id: +params,
+        },
+      });
+      return product;
+    }
+
+    return 'There is still some Inventory left'
+
   }
 }
 
