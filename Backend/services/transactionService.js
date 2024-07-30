@@ -38,7 +38,7 @@ class TransactionService {
 
       //Validasi ada atau tidaknya product dengan master_product_id tertentu
       if (!masterProduct) {
-        const errorMessage = `Product with master_product_id ${master_product_id} does not exist`;
+        const errorMessage = `Product with product id ${master_product_id} does not exist`;
         throw { name: "notFound", message: errorMessage };
       }
 
@@ -71,7 +71,7 @@ class TransactionService {
 
         //Mencari product dengan master_product_id yang ditulis dan mengirim error jika tidak ada
         if (!originInventory) {
-          const errorMessage = `Cannot find product with master_product_id ${master_product_id} in warehouse ${originWarehouseId}`;
+          const errorMessage = `Cannot find product with product id ${master_product_id} in warehouse ${originWarehouseId}`;
           throw {
             name: "notFound",
             message: errorMessage,
@@ -80,7 +80,7 @@ class TransactionService {
 
         //Validasi jika quantity sebuah product kurang untuk dikeluarkan/"Out"
         if (originInventory.quantity < quantity) {
-          const errorMessage = `Not enough stock for product with master_product_id ${master_product_id} in warehouse ${originWarehouseId}`;
+          const errorMessage = `Not enough stock for product with product id ${master_product_id} in warehouse ${originWarehouseId}`;
           throw {
             name: "notFound",
             message: errorMessage,
