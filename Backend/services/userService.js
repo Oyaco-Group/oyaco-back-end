@@ -68,6 +68,23 @@ class UserService {
     }
   }
 
+  static async getUserByEmail(params) {
+    const{email} = params;
+    const user = await prisma.user.findUnique({
+      where : {email},
+      select : {
+        id : true,
+        name : true,
+        email : true,
+        user_role : true,
+        address : true,
+      }
+    })
+    if(!user) throw({name : 'notFound', message : 'User is Not Found'});
+
+    return user;
+  }
+
   static async getOrderByUserId(id) {
     const order = await prisma.user.findUnique({
       where: {

@@ -7,6 +7,7 @@ const router = express.Router();
 
 router.get("/", UserController.getListUser);
 router.get("/:id", UserController.getUserById);
+router.get("/email/:email", UserController.getUserByEmail);
 router.put(
   "/edit/:id",
   uploadHandlerUser.single("image"),
