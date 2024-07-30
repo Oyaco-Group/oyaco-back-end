@@ -75,6 +75,7 @@ class InventoryController {
 
   static async getStockByWarehouse(req, res, next) {
     try {
+<<<<<<< HEAD
       const page = req.query.page;
       const { warehouse_id } = req.params;
 
@@ -96,6 +97,13 @@ class InventoryController {
     try {
       const { id } = req.params;
       const inventory = await InventoryService.getStockByProductId(id);
+=======
+      const page = req.query.page
+      const { warehouse_id } = req.params;
+
+      const inventory = await InventoryService.getStockByWarehouse(warehouse_id, page);
+
+>>>>>>> 2ec4f2edc140574d5a05b6a89b0372211a947327
       res.status(200).json({
         message: "success get stock",
         data: inventory,
