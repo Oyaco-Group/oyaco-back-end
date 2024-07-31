@@ -61,7 +61,7 @@ class TransactionService {
       //Validasi apakah input adalah "Supplier" atau bukan
       if (!isOriginSpecial) {
         const originWarehouse = await prisma.warehouse.findFirst({
-            where: { name: toTitleCase(originLower) },
+          where: { name: toTitleCase(originLower) },
         });
 
         //Validasi apakah origin bisa di input atau tidak
@@ -133,7 +133,7 @@ class TransactionService {
       //Validasi apakah destination adalah "Customer"
       if (!isDestinationSpecial) {
         const destinationWarehouse = await prisma.warehouse.findFirst({
-            where: { name: toTitleCase(destinationLower) },
+          where: { name: toTitleCase(destinationLower) },
         });
 
         //Validasi apakah destination bisa diinput atau tidak
@@ -201,7 +201,7 @@ class TransactionService {
 
       return {
         productMovementOut: isOriginSpecial ? null : productMovementOut,
-            productMovementIn,
+        productMovementIn,
       };
     });
   }
@@ -217,120 +217,127 @@ class TransactionService {
     return productMovement;
   }
 
-static async updateExpirationStatus() {
-  const currentDate = new Date();
+  static async updateExpirationStatus() {
+    const currentDate = new Date();
 
-  // Fetch expired products
-  const expiredProducts = await prisma.productMovement.findMany({
-    where: {
-      expiration_date: {
-        lte: currentDate,
+    // Fetch expired products
+    const expiredProducts = await prisma.productMovement.findMany({
+      where: {
+        expiration_date: {
+          lte: currentDate,
+        },
+        expiration_status: false,
       },
-      expiration_status: false,
-    },
-  });
+    });
 
-  // Fetch products with iscondition_good as false
-  const damagedProducts = await prisma.productMovement.findMany({
-    where: {
-      iscondition_good: false,
-    },
-  });
+    // Fetch products with iscondition_good as false
+    const damagedProducts = await prisma.productMovement.findMany({
+      where: {
+        iscondition_good: false,
+      },
+    });
 
-  // Combine expired and damaged products
-  const allProducts = [...expiredProducts, ...damagedProducts];
+    // Combine expired and damaged products
+    const allProducts = [...expiredProducts, ...damagedProducts];
 
-  if (allProducts.length === 0) {
-    const errorMessage = "There are no expired or damaged products";
-    throw { name: "notFound", message: errorMessage }; // Exit if no products are found
-  }
+    if (allProducts.length === 0) {
+      const errorMessage = "There are no expired or damaged products";
+      throw { name: "notFound", message: errorMessage }; // Exit if no products are found
+    }
 
-  // Track updates to avoid multiple updates for the same inventory
-  const inventoryUpdates = new Map();
+    // Track updates to avoid multiple updates for the same inventory
+    const inventoryUpdates = new Map();
 
-  for (const product of allProducts) {
-    // Skip products that have already been removed
-    if (product.expiration_status || !product.iscondition_good) continue;
+    for (const product of allProducts) {
+      // Skip products that have already been removed
+      if (product.expiration_status || !product.iscondition_good) continue;
 
-    // Update expiration status for expired productMovement
-    if (product.expiration_date <= currentDate && !product.expiration_status) {
-      await prisma.productMovement.update({
+      // Update expiration status for expired productMovement
+      if (
+        product.expiration_date <= currentDate &&
+        !product.expiration_status
+      ) {
+        await prisma.productMovement.update({
+          where: {
+            id: product.id,
+          },
+          data: {
+            expiration_status: true,
+          },
+        });
+      }
+
+      // Find inventory record
+      const inventory = await prisma.inventory.findUnique({
         where: {
-          id: product.id,
-        },
-        data: {
-          expiration_status: true,
+          id: product.inventory_id,
         },
       });
+
+      if (inventory) {
+        const existingUpdate = inventoryUpdates.get(inventory.id) || {
+          quantityToDecrement: 0,
+          isdelete: false,
+        };
+
+        // Update the map with new values
+        const quantityToDecrement =
+          existingUpdate.quantityToDecrement + product.quantity;
+
+        inventoryUpdates.set(inventory.id, {
+          quantityToDecrement,
+          isdelete: quantityToDecrement >= inventory.quantity,
+        });
+
+        // Create productMovement record for expired or damaged products
+        await prisma.productMovement.create({
+          data: {
+            user_id: product.user_id,
+            master_product_id: product.master_product_id,
+            inventory_id: inventory.id,
+            movement_type: "Removed",
+            origin: product.destination,
+            destination: null,
+            quantity: product.quantity,
+            iscondition_good: product.iscondition_good,
+            arrival_date: product.arrival_date,
+            expiration_date: product.expiration_date,
+            expiration_status: true,
+          },
+        });
+      }
     }
 
-    // Find inventory record
-    const inventory = await prisma.inventory.findUnique({
-      where: {
-        id: product.inventory_id,
-      },
-    });
-
-    if (inventory) {
-      const existingUpdate = inventoryUpdates.get(inventory.id) || {
-        quantityToDecrement: 0,
-        isdelete: false,
-      };
-
-      // Update the map with new values
-      const quantityToDecrement = existingUpdate.quantityToDecrement + product.quantity;
-
-      inventoryUpdates.set(inventory.id, {
-        quantityToDecrement,
-        isdelete: quantityToDecrement >= inventory.quantity,
-      });
-
-      // Create productMovement record for expired or damaged products
-      await prisma.productMovement.create({
-        data: {
-          user_id: product.user_id,
-          master_product_id: product.master_product_id,
-          inventory_id: inventory.id,
-          movement_type: "Removed",
-          origin: product.destination,
-          destination: null,
-          quantity: product.quantity,
-          iscondition_good: product.iscondition_good,
-          arrival_date: product.arrival_date,
-          expiration_date: product.expiration_date,
-          expiration_status: true,
-        },
-      });
-    }
-  }
-
-  // Apply updates to inventory
-  for (const [inventoryId, update] of inventoryUpdates.entries()) {
-    const inventory = await prisma.inventory.findUnique({
-      where: {
-        id: inventoryId,
-      },
-    });
-
-    if (inventory) {
-      // Calculate the quantity to decrement
-      const quantityToDecrement = Math.min(update.quantityToDecrement, inventory.quantity);
-
-      // Update the inventory record
-      await prisma.inventory.update({
+    // Apply updates to inventory
+    for (const [inventoryId, update] of inventoryUpdates.entries()) {
+      const inventory = await prisma.inventory.findUnique({
         where: {
           id: inventoryId,
         },
-        data: {
-          quantity: {
-            decrement: quantityToDecrement, // Ensure quantity doesn't go below zero
-          },
-          isdelete: update.isdelete,
-        },
       });
+
+      if (inventory) {
+        // Calculate the quantity to decrement
+        const quantityToDecrement = Math.min(
+          update.quantityToDecrement,
+          inventory.quantity
+        );
+
+        // Update the inventory record
+        await prisma.inventory.update({
+          where: {
+            id: inventoryId,
+          },
+          data: {
+            quantity: {
+              decrement: quantityToDecrement, // Ensure quantity doesn't go below zero
+            },
+            isdelete: update.isdelete,
+          },
+        });
+      }
     }
   }
-}
 
   static async getTransactionById(id) {
     const productMovement = await prisma.productMovement.findUnique({
@@ -340,6 +347,36 @@ static async updateExpirationStatus() {
     if (!productMovement) {
       throw { name: "notFound", message: "Transaction not found" };
     }
+
+    return productMovement;
+  }
+
+  static async getAllOutgoingTransactions(page) {
+    const limit = 5;
+    const skip = (page - 1) * limit;
+    const productMovement = await prisma.productMovement.findMany({
+      where: {
+        movement_type: {
+          in: ["Out", "Removed"],
+        },
+      },
+      take: limit,
+      skip: skip,
+    });
+
+    return productMovement;
+  }
+
+  static async getAllIncomingTransactions(page) {
+    const limit = 5;
+    const skip = (page - 1) * limit;
+    const productMovement = await prisma.productMovement.findMany({
+      where: {
+        movement_type: "In",
+      },
+      take: limit,
+      skip: skip,
+    });
 
     return productMovement;
   }
