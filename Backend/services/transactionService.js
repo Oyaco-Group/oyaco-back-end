@@ -61,7 +61,7 @@ class TransactionService {
       //Validasi apakah input adalah "Supplier" atau bukan
       if (!isOriginSpecial) {
         const originWarehouse = await prisma.warehouse.findFirst({
-            where: { name: toTitleCase(originLower) },
+          where: { name: toTitleCase(originLower) },
         });
 
         //Validasi apakah origin bisa di input atau tidak
@@ -133,7 +133,7 @@ class TransactionService {
       //Validasi apakah destination adalah "Customer"
       if (!isDestinationSpecial) {
         const destinationWarehouse = await prisma.warehouse.findFirst({
-            where: { name: toTitleCase(destinationLower) },
+          where: { name: toTitleCase(destinationLower) },
         });
 
         //Validasi apakah destination bisa diinput atau tidak
@@ -201,7 +201,7 @@ class TransactionService {
 
       return {
         productMovementOut: isOriginSpecial ? null : productMovementOut,
-            productMovementIn,
+        productMovementIn,
       };
     });
   }
@@ -340,6 +340,36 @@ static async updateExpirationStatus() {
     if (!productMovement) {
       throw { name: "notFound", message: "Transaction not found" };
     }
+
+    return productMovement;
+  }
+
+  static async getAllOutgoingTransactions(page) {
+    const limit = 5;
+    const skip = (page - 1) * limit;
+    const productMovement = await prisma.productMovement.findMany({
+      where: {
+        movement_type: {
+          in: ["Out", "Removed"],
+        },
+      },
+      take: limit,
+      skip: skip,
+    });
+
+    return productMovement;
+  }
+
+  static async getAllIncomingTransactions(page) {
+    const limit = 5;
+    const skip = (page - 1) * limit;
+    const productMovement = await prisma.productMovement.findMany({
+      where: {
+        movement_type: "In",
+      },
+      take: limit,
+      skip: skip,
+    });
 
     return productMovement;
   }
