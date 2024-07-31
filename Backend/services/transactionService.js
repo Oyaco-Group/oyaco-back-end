@@ -230,42 +230,24 @@ class TransactionService {
       },
     });
 
-    // Fetch products with iscondition_good as false
-    const damagedProducts = await prisma.productMovement.findMany({
-      where: {
-        iscondition_good: false,
-      },
-    });
-
-    // Combine expired and damaged products
-    const allProducts = [...expiredProducts, ...damagedProducts];
-
-    if (allProducts.length === 0) {
-      const errorMessage = "There are no expired or damaged products";
-      throw { name: "notFound", message: errorMessage }; // Exit if no products are found
+    if (expiredProducts.length === 0) {
+      const errorMessage = "There are no more expired products";
+      throw { name: "notFound", message: errorMessage }; // Exit if no expired products are found
     }
 
     // Track updates to avoid multiple updates for the same inventory
     const inventoryUpdates = new Map();
 
-    for (const product of allProducts) {
-      // Skip products that have already been removed
-      if (product.expiration_status || !product.iscondition_good) continue;
-
-      // Update expiration status for expired productMovement
-      if (
-        product.expiration_date <= currentDate &&
-        !product.expiration_status
-      ) {
-        await prisma.productMovement.update({
-          where: {
-            id: product.id,
-          },
-          data: {
-            expiration_status: true,
-          },
-        });
-      }
+    for (const product of expiredProducts) {
+      // Update expiration status for productMovement
+      await prisma.productMovement.update({
+        where: {
+          id: product.id,
+        },
+        data: {
+          expiration_status: true,
+        },
+      });
 
       // Find inventory record
       const inventory = await prisma.inventory.findUnique({
@@ -289,7 +271,7 @@ class TransactionService {
           isdelete: quantityToDecrement >= inventory.quantity,
         });
 
-        // Create productMovement record for expired or damaged products
+        // Create productMovement record for expired products
         await prisma.productMovement.create({
           data: {
             user_id: product.user_id,
