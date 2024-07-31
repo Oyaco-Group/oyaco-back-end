@@ -38,6 +38,34 @@ class TransactionController {
     }
   }
 
+  static async getAllOutgoingTransactions(req, res, next) {
+    try {
+      const page = req.query.page;
+      const productMovement = await TransactionService.getAllOutgoingTransactions(page);
+
+      res.status(200).json({
+        massage: "success get all outgoing transactions",
+        data: productMovement,
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  static async getAllIncomingTransactions(req, res, next) {
+    try {
+      const page = req.query.page;
+      const productMovement = await TransactionService.getAllIncomingTransactions(page);
+
+      res.status(200).json({
+        massage: "success get all incoming transactions",
+        data: productMovement,
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
+
   static async getTransactionById(req, res, next) {
     try {
       const { id } = req.params;

@@ -1,5 +1,5 @@
 const prisma = require("../lib/prisma");
-const {sendEmailToAdmin} = require("../lib/nodeMailer");
+const { sendEmailToAdmin } = require("../lib/nodeMailer");
 const { response } = require("express");
 
 class TransactionService {
@@ -23,13 +23,25 @@ class TransactionService {
       if (!quantity || isNaN(quantity)) {
         const errorMessage = `Invalid quantity input`;
         throw { name: "invalidInput", message: errorMessage };
-    }
+      }
 
       // Calculate expiration date if not provided
       const arrivalDate = new Date();
       const calculatedExpirationDate = new Date(
         arrivalDate.setMonth(arrivalDate.getMonth() + 3)
       );
+
+      function toTitleCase(str) {
+        return str.replace(/\b\w/g, (char) => char.toUpperCase());
+      }
+
+      const isOriginSpecial = origin.toLowerCase() === "supplier";
+      const isDestinationSpecial = destination.toLowerCase() === "customer";
+
+      const originLower = isOriginSpecial ? origin : origin.toLowerCase();
+      const destinationLower = isDestinationSpecial
+        ? destination
+        : destination.toLowerCase();
 
       //Mencari product yang ada di masterProduct
       const masterProduct = await prisma.masterProduct.findFirst({
@@ -38,7 +50,7 @@ class TransactionService {
 
       //Validasi ada atau tidaknya product dengan master_product_id tertentu
       if (!masterProduct) {
-        const errorMessage = `Product with master_product_id ${master_product_id} does not exist`;
+        const errorMessage = `Product with product id ${master_product_id} does not exist`;
         throw { name: "notFound", message: errorMessage };
       }
 
@@ -47,9 +59,9 @@ class TransactionService {
       let productMovementIn = null;
 
       //Validasi apakah input adalah "Supplier" atau bukan
-      if (origin !== "Supplier") {
+      if (!isOriginSpecial) {
         const originWarehouse = await prisma.warehouse.findFirst({
-          where: { name: origin },
+          where: { name: toTitleCase(originLower) },
         });
 
         //Validasi apakah origin bisa di input atau tidak
@@ -71,7 +83,7 @@ class TransactionService {
 
         //Mencari product dengan master_product_id yang ditulis dan mengirim error jika tidak ada
         if (!originInventory) {
-          const errorMessage = `Cannot find product with master_product_id ${master_product_id} in warehouse ${originWarehouseId}`;
+          const errorMessage = `Cannot find product with product id ${master_product_id} in warehouse ${originWarehouseId}`;
           throw {
             name: "notFound",
             message: errorMessage,
@@ -80,7 +92,7 @@ class TransactionService {
 
         //Validasi jika quantity sebuah product kurang untuk dikeluarkan/"Out"
         if (originInventory.quantity < quantity) {
-          const errorMessage = `Not enough stock for product with master_product_id ${master_product_id} in warehouse ${originWarehouseId}`;
+          const errorMessage = `Not enough stock for product with product id ${master_product_id} in warehouse ${originWarehouseId}`;
           throw {
             name: "notFound",
             message: errorMessage,
@@ -94,8 +106,8 @@ class TransactionService {
             master_product_id,
             inventory_id: originInventory.id,
             movement_type: "Out",
-            origin,
-            destination,
+            origin: toTitleCase(originLower),
+            destination: toTitleCase(destinationLower),
             quantity,
             iscondition_good,
             arrival_date,
@@ -119,9 +131,9 @@ class TransactionService {
       }
 
       //Validasi apakah destination adalah "Customer"
-      if (destination !== "Customer") {
+      if (!isDestinationSpecial) {
         const destinationWarehouse = await prisma.warehouse.findFirst({
-          where: { name: destination },
+          where: { name: toTitleCase(destinationLower) },
         });
 
         //Validasi apakah destination bisa diinput atau tidak
@@ -163,8 +175,8 @@ class TransactionService {
             master_product_id,
             inventory_id: destinationInventory.id,
             movement_type: "In",
-            origin,
-            destination,
+            origin: toTitleCase(originLower),
+            destination: toTitleCase(destinationLower),
             quantity,
             iscondition_good,
             arrival_date,
@@ -188,7 +200,7 @@ class TransactionService {
       }
 
       return {
-        productMovementOut: origin === "Supplier" ? null : productMovementOut,
+        productMovementOut: isOriginSpecial ? null : productMovementOut,
         productMovementIn,
       };
     });
@@ -321,6 +333,36 @@ class TransactionService {
     return productMovement;
   }
 
+  static async getAllOutgoingTransactions(page) {
+    const limit = 5;
+    const skip = (page - 1) * limit;
+    const productMovement = await prisma.productMovement.findMany({
+      where: {
+        movement_type: {
+          in: ["Out", "Removed"],
+        },
+      },
+      take: limit,
+      skip: skip,
+    });
+
+    return productMovement;
+  }
+
+  static async getAllIncomingTransactions(page) {
+    const limit = 5;
+    const skip = (page - 1) * limit;
+    const productMovement = await prisma.productMovement.findMany({
+      where: {
+        movement_type: "In",
+      },
+      take: limit,
+      skip: skip,
+    });
+
+    return productMovement;
+  }
+
   static async getOutgoingTransactionsByWarehouseId(warehouseId, page) {
     const limit = 5;
     const skip = (page - 1) * limit;
@@ -444,28 +486,27 @@ class TransactionService {
     // cron.schedule(
     //   "0 0 * * *",
     //   async () => {
-        try {
-          const today = new Date();
-          expiredProducts = await prisma.productMovement.findMany({
-            where: {
-              expiration_date: {
-                lt: today,
-              },
-              expiration_status: false,
-            },
-          });
+    try {
+      const today = new Date();
+      expiredProducts = await prisma.productMovement.findMany({
+        where: {
+          expiration_date: {
+            lt: today,
+          },
+          expiration_status: false,
+        },
+      });
 
-          console.log("Checking expired products.");
+      console.log("Checking expired products.");
 
-          if (expiredProducts.length > 0) {
-            await sendEmailToAdmin(expiredProducts);
-          }else {
-            console.log("No expired products found.");
-          }
-          
-        } catch (error) {
-          console.error("Failed checking expired products:", error);
-        }
+      if (expiredProducts.length > 0) {
+        await sendEmailToAdmin(expiredProducts);
+      } else {
+        console.log("No expired products found.");
+      }
+    } catch (error) {
+      console.error("Failed checking expired products:", error);
+    }
     //   },
     //   {
     //     scheduled: true,
