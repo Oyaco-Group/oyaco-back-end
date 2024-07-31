@@ -217,43 +217,29 @@ class TransactionService {
     return productMovement;
   }
 
-static async updateExpirationStatus() {
-  const currentDate = new Date();
+  static async updateExpirationStatus() {
+    const currentDate = new Date();
 
-  // Fetch expired products
-  const expiredProducts = await prisma.productMovement.findMany({
-    where: {
-      expiration_date: {
-        lte: currentDate,
+    // Fetch expired products
+    const expiredProducts = await prisma.productMovement.findMany({
+      where: {
+        expiration_date: {
+          lte: currentDate,
+        },
+        expiration_status: false,
       },
-      expiration_status: false,
-    },
-  });
+    });
 
-  // Fetch products with iscondition_good as false
-  const damagedProducts = await prisma.productMovement.findMany({
-    where: {
-      iscondition_good: false,
-    },
-  });
+    if (expiredProducts.length === 0) {
+      const errorMessage = "There are no more expired products";
+      throw { name: "notFound", message: errorMessage }; // Exit if no expired products are found
+    }
 
-  // Combine expired and damaged products
-  const allProducts = [...expiredProducts, ...damagedProducts];
+    // Track updates to avoid multiple updates for the same inventory
+    const inventoryUpdates = new Map();
 
-  if (allProducts.length === 0) {
-    const errorMessage = "There are no expired or damaged products";
-    throw { name: "notFound", message: errorMessage }; // Exit if no products are found
-  }
-
-  // Track updates to avoid multiple updates for the same inventory
-  const inventoryUpdates = new Map();
-
-  for (const product of allProducts) {
-    // Skip products that have already been removed
-    if (product.expiration_status || !product.iscondition_good) continue;
-
-    // Update expiration status for expired productMovement
-    if (product.expiration_date <= currentDate && !product.expiration_status) {
+    for (const product of expiredProducts) {
+      // Update expiration status for productMovement
       await prisma.productMovement.update({
         where: {
           id: product.id,
@@ -262,75 +248,78 @@ static async updateExpirationStatus() {
           expiration_status: true,
         },
       });
-    }
 
-    // Find inventory record
-    const inventory = await prisma.inventory.findUnique({
-      where: {
-        id: product.inventory_id,
-      },
-    });
-
-    if (inventory) {
-      const existingUpdate = inventoryUpdates.get(inventory.id) || {
-        quantityToDecrement: 0,
-        isdelete: false,
-      };
-
-      // Update the map with new values
-      const quantityToDecrement = existingUpdate.quantityToDecrement + product.quantity;
-
-      inventoryUpdates.set(inventory.id, {
-        quantityToDecrement,
-        isdelete: quantityToDecrement >= inventory.quantity,
-      });
-
-      // Create productMovement record for expired or damaged products
-      await prisma.productMovement.create({
-        data: {
-          user_id: product.user_id,
-          master_product_id: product.master_product_id,
-          inventory_id: inventory.id,
-          movement_type: "Removed",
-          origin: product.destination,
-          destination: null,
-          quantity: product.quantity,
-          iscondition_good: product.iscondition_good,
-          arrival_date: product.arrival_date,
-          expiration_date: product.expiration_date,
-          expiration_status: true,
+      // Find inventory record
+      const inventory = await prisma.inventory.findUnique({
+        where: {
+          id: product.inventory_id,
         },
       });
+
+      if (inventory) {
+        const existingUpdate = inventoryUpdates.get(inventory.id) || {
+          quantityToDecrement: 0,
+          isdelete: false,
+        };
+
+        // Update the map with new values
+        const quantityToDecrement =
+          existingUpdate.quantityToDecrement + product.quantity;
+
+        inventoryUpdates.set(inventory.id, {
+          quantityToDecrement,
+          isdelete: quantityToDecrement >= inventory.quantity,
+        });
+
+        // Create productMovement record for expired products
+        await prisma.productMovement.create({
+          data: {
+            user_id: product.user_id,
+            master_product_id: product.master_product_id,
+            inventory_id: inventory.id,
+            movement_type: "Removed",
+            origin: product.destination,
+            destination: null,
+            quantity: product.quantity,
+            iscondition_good: product.iscondition_good,
+            arrival_date: product.arrival_date,
+            expiration_date: product.expiration_date,
+            expiration_status: true,
+          },
+        });
+      }
     }
-  }
 
-  // Apply updates to inventory
-  for (const [inventoryId, update] of inventoryUpdates.entries()) {
-    const inventory = await prisma.inventory.findUnique({
-      where: {
-        id: inventoryId,
-      },
-    });
-
-    if (inventory) {
-      // Calculate the quantity to decrement
-      const quantityToDecrement = Math.min(update.quantityToDecrement, inventory.quantity);
-
-      // Update the inventory record
-      await prisma.inventory.update({
+    // Apply updates to inventory
+    for (const [inventoryId, update] of inventoryUpdates.entries()) {
+      const inventory = await prisma.inventory.findUnique({
         where: {
           id: inventoryId,
         },
-        data: {
-          quantity: {
-            decrement: quantityToDecrement, // Ensure quantity doesn't go below zero
-          },
-          isdelete: update.isdelete,
-        },
       });
+
+      if (inventory) {
+        // Calculate the quantity to decrement
+        const quantityToDecrement = Math.min(
+          update.quantityToDecrement,
+          inventory.quantity
+        );
+
+        // Update the inventory record
+        await prisma.inventory.update({
+          where: {
+            id: inventoryId,
+          },
+          data: {
+            quantity: {
+              decrement: quantityToDecrement, // Ensure quantity doesn't go below zero
+            },
+            isdelete: update.isdelete,
+          },
+        });
+      }
     }
   }
-}
 
   static async getTransactionById(id) {
     const productMovement = await prisma.productMovement.findUnique({
