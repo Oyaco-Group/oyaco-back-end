@@ -22,7 +22,9 @@ class MasterProductService {
         },
       },
     });
-    return masterProduct;
+    const numberProduct = await prisma.masterProduct.count();
+    const totalPages = Math.ceil(numberProduct/limit);
+    return {masterProduct, totalPages};
   }
 
   static async getProductById(params) {

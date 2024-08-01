@@ -50,6 +50,19 @@ class UserController {
     }
   }
 
+  static async getUserByEmail(req, res, next) {
+    try {
+      const params = req.params;
+      const user = await UserService.getUserByEmail(params);
+      res.status(200).json({
+        message : 'Get user by Email is success',
+        data : user
+      })
+    } catch (err) {
+      next(err)
+    }
+  }
+
   static async editUser(req, res, next) {
     try {
       const { id } = req.params;
