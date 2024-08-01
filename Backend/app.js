@@ -6,14 +6,20 @@ const cors = require("cors");
 const errorHandler = require("./middleware/errorHandler");
 const multerErrorHandler = require("./middleware/multerError");
 
-
 dotenv.config();
-app.use(cors({
-  origin : 'http://localhost:3000',
-  allowedHeaders: "Origin, X-Requested-With, Content-Type, Accept, Authorization",
-  methods: "GET, POST, PUT, DELETE, PATCH, OPTIONS",
-  optionsSuccessStatus: 200
-}));
+
+console.log("Database URL:", process.env.DATABASE_URL);
+console.log("Secret Key:", process.env.SECRET_KEY);
+
+app.use(
+  cors({
+    origin: "http://localhost:3000",
+    allowedHeaders:
+      "Origin, X-Requested-With, Content-Type, Accept, Authorization",
+    methods: "GET, POST, PUT, DELETE, PATCH, OPTIONS",
+    optionsSuccessStatus: 200,
+  })
+);
 
 const port = process.env.PORT;
 

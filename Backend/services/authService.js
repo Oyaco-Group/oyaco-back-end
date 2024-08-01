@@ -9,23 +9,19 @@ class AuthService {
   static async register(data) {
     const { name, email, address, password, user_role, image } = data;
     const image_url = image ? image.filename : null;
-    const existingUser = await prisma.user.findUnique({
-      where: { email },
-    });
+
+    const existingUser = await prisma.user.findUnique({ where: { email } });
 
     if (existingUser) {
-      if (image) {
-        await unlinkAsync(image.path);
-      }
-      throw { name: "failedToCreate", message: "Email is Already Used" };
+      if (image) await unlinkAsync(image.path);
+      throw { name: "failedToCreate", message: "Email is already in use" };
     }
+
     if (!name || !email || !address || !password || !user_role) {
-      if (image) {
-        await unlinkAsync(image.path);
-      }
+      if (image) await unlinkAsync(image.path);
       throw {
         name: "failedToCreate",
-        message: "Please Input Every Field in Form",
+        message: "Please provide all required fields",
       };
     }
 
@@ -47,30 +43,23 @@ class AuthService {
 
   static async login(data) {
     const { email, password } = data;
-    const existUser = await prisma.user.findFirst({
-      where: { email },
-    });
+    const existingUser = await prisma.user.findFirst({ where: { email } });
 
-    if (!existUser || !comparePassword(password, existUser.password)) {
-      const error = new Error("Email or password is incorrect!");
-      error.name = "invalidCredentials";
-      throw error;
+    if (!existingUser || !comparePassword(password, existingUser.password)) {
+      throw {
+        name: "invalidCredentials",
+        message: "Email or password is incorrect",
+      };
     }
 
-    const token = generateToken({
-      id: existUser.id,
-      email: existUser.email,
-      role: existUser.user_role,
+    const access_token = generateToken({
+      id: existingUser.id,
+      name: existingUser.name,
+      email: existingUser.email,
+      role: existingUser.user_role,
     });
 
-    const user = {
-      id: existUser.id,
-      name: existUser.name,
-      email: existUser.email,
-      role: existUser.user_role,
-    };
-
-    return { token, user };
+    return { access_token: `Bearer ${access_token}` };
   }
 }
 
