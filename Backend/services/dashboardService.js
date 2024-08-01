@@ -21,6 +21,7 @@ class dashboardService {
           name: true,
           sku: true,
           price: true,
+          image: true,
           category: {
             select: {
               name: true,
@@ -40,8 +41,26 @@ class dashboardService {
           created_at: true,
           user: {
             select: {
+              id: true,
               name: true,
               email: true,
+            },
+          },
+          order_item: {
+            select: {
+              master_product: {
+                select: {
+                  name: true,
+                  sku: true,
+                  image: true,
+                  price: true,
+                  category: {
+                    select: {
+                      name: true,
+                    },
+                  },
+                },
+              },
             },
           },
         },
