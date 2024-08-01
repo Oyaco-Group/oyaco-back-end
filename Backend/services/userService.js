@@ -31,6 +31,7 @@ class UserService {
         email: true,
         address: true,
         user_role: true,
+        image_url : true
       },
     });
     return { users, total_user, total_page };

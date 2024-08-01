@@ -182,11 +182,57 @@ class OrderServicer {
   }
 
   static async sendOrder(params) {
-    const {id,user_id} = params;
+    const {id, user_id, admin_id} = params;
 
     const order = await prisma.order.findUnique({
-        where : {id : +id}
+        where : {id : +id},
+        include : {
+          order_item : true
+        }
     })
+
+    const createProductMovement = async() => {
+      for(const obj of order.order_item) {
+        const inventory = await prisma.inventory.findUnique({
+          where : {
+            id : obj.inventory_id
+          },
+          include : {
+            warehouse : {
+              select : {
+                name : true
+              }
+            }
+          }
+        })
+        const origin = inventory.warehouse.name;
+        const destination = `user id ${user_id}`;
+        const quantity = obj.quantity;
+        const arrivalDate = new Date();
+        const expirationDate = new Date(arrivalDate.getTime());
+        expirationDate.setMonth(expirationDate.getMonth() + 3);
+
+        const productMovement = await prisma.productMovement.create({
+          data : {
+            user_id : +admin_id,
+            master_product_id : inventory.master_product_id,
+            inventory_id : inventory.id,
+            movement_type : "Out",
+            origin : origin,
+            destination : destination,
+            quantity : quantity,
+            iscondition_good : true,
+            arrival_date : arrivalDate,
+            expiration_date : expirationDate,
+            expiration_status : false,
+          }
+        })
+        console.log(productMovement);
+      }
+    }
+
+    createProductMovement();
+    
     const user = await prisma.user.findUnique({
         where : {id : +user_id}
     })
