@@ -31,6 +31,7 @@ class UserService {
         email: true,
         address: true,
         user_role: true,
+        image_url : true
       },
     });
     return { users, total_user, total_page };
@@ -66,6 +67,23 @@ class UserService {
       console.error("Error in getUserById:", error); // Debugging line
       throw error;
     }
+  }
+
+  static async getUserByEmail(params) {
+    const{email} = params;
+    const user = await prisma.user.findUnique({
+      where : {email},
+      select : {
+        id : true,
+        name : true,
+        email : true,
+        user_role : true,
+        address : true,
+      }
+    })
+    if(!user) throw({name : 'notFound', message : 'User is Not Found'});
+
+    return user;
   }
 
   static async getOrderByUserId(id) {
