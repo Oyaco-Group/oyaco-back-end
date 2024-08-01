@@ -8,9 +8,6 @@ const multerErrorHandler = require("./middleware/multerError");
 
 dotenv.config();
 
-console.log("Database URL:", process.env.DATABASE_URL);
-console.log("Secret Key:", process.env.SECRET_KEY);
-
 app.use(
   cors({
     origin: "http://localhost:3000",
