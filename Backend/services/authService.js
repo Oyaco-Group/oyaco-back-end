@@ -54,6 +54,7 @@ class AuthService {
 
     const access_token = generateToken({
       id: existingUser.id,
+      image: existingUser.image_url,
       name: existingUser.name,
       email: existingUser.email,
       role: existingUser.user_role,
