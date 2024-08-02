@@ -25,6 +25,11 @@ class TransactionService {
         throw { name: "invalidInput", message: errorMessage };
       }
 
+      if (origin.toLowerCase() === destination.toLowerCase()) {
+        const errorMessage = `Origin and destination cannot be the same`;
+        throw { name: "invalidInput", message: errorMessage };
+      }
+
       // Calculate expiration date if not provided
       const arrivalDate = new Date();
       const calculatedExpirationDate = new Date(
@@ -342,10 +347,22 @@ class TransactionService {
           in: ["Out", "Removed"],
         },
       },
+      include: {
+        user: {
+          select: {
+            name: true,
+          },
+        },
+        master_product: {
+          select: {
+            name: true,
+          },
+        },
+      },
       take: limit,
       skip: skip,
     });
-
+    
     return productMovement;
   }
 
@@ -355,6 +372,18 @@ class TransactionService {
     const productMovement = await prisma.productMovement.findMany({
       where: {
         movement_type: "In",
+      },
+      include: {
+        user: {
+          select: {
+            name: true,
+          },
+        },
+        master_product: {
+          select: {
+            name: true,
+          },
+        },
       },
       take: limit,
       skip: skip,
