@@ -25,6 +25,11 @@ class TransactionService {
         throw { name: "invalidInput", message: errorMessage };
       }
 
+      if (origin.toLowerCase() === destination.toLowerCase()) {
+        const errorMessage = `Origin and destination cannot be the same`;
+        throw { name: "invalidInput", message: errorMessage };
+    }
+
       // Calculate expiration date if not provided
       const arrivalDate = new Date();
       const calculatedExpirationDate = new Date(
@@ -345,7 +350,7 @@ class TransactionService {
       take: limit,
       skip: skip,
     });
-
+    
     return productMovement;
   }
 
