@@ -37,6 +37,14 @@ class InventoryService {
     const inventory = await prisma.inventory.findMany({
       take: limit,
       skip: skip,
+      include: {
+        master_product: {
+          select: {
+            name:true,
+            price: true
+          }
+        }
+      }
     });
 
     return inventory;
