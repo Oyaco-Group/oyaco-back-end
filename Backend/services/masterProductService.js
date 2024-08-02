@@ -23,8 +23,8 @@ class MasterProductService {
       },
     });
     const numberProduct = await prisma.masterProduct.count();
-    const totalPages = Math.ceil(numberProduct/limit);
-    return {masterProduct, totalPages};
+    const totalPages = Math.ceil(numberProduct / limit);
+    return { masterProduct, totalPages };
   }
 
   static async getProductById(params) {
@@ -66,23 +66,34 @@ class MasterProductService {
 
   static async createProduct(params) {
     const { name, image, sku, price, category_id, isdelete } = params;
-    const image_url = !image ? 'no-image.jpg' : image.filename;
+    const image_url = !image ? "no-image.jpg" : image.filename;
 
     const imagePath = !image ? null : image.path;
+
+    const category = await prisma.category.findUnique({
+      where: { id: +category_id },
+    });
+
     const existingProduct = await prisma.masterProduct.findFirst({
       where: { name },
     });
     if (existingProduct) {
-      if(imagePath) await unlinkAsync(imagePath);
+      if (imagePath) await unlinkAsync(imagePath);
       throw { name: "failedToCreate", message: "Product has been Existed" };
     }
     const existingSKU = await prisma.masterProduct.findUnique({
       where: { sku },
     });
     if (existingSKU) {
-      if(imagePath) await unlinkAsync(imagePath);
+      if (imagePath) await unlinkAsync(imagePath);
       throw { name: "failedToCreate", message: "SKU has been Existed" };
     }
+
+    if (!category) {
+      if (imagePath) await unlinkAsync(imagePath);
+      throw { name: "failedToCreate", message: "Category does not exist" };
+    }
+
     const isdeleteBoolean = isdelete === "true";
     const lowerCaseName = name.toLowerCase();
     const slugify = slug(lowerCaseName, "-");
@@ -106,8 +117,7 @@ class MasterProductService {
   }
 
   static async editProduct(params) {
-    const { id } = params;
-    const { name, image, category_id, price, sku, isdelete } = params;
+    const { id, name, image, category_id, price, sku, isdelete } = params;
     const imageFilename = !image ? null : image.filename;
     const imagePath = !image ? null : image.path;
 
@@ -115,56 +125,73 @@ class MasterProductService {
     const isdeleteBoolean = isdelete === "true";
     const lowerCaseName = name.toLowerCase();
     const slugify = slug(lowerCaseName, "-");
-    const existingProductId = await prisma.masterProduct.findUnique({
-      where: {
-        id: +id,
-      },
-    });
 
-    if(!imageFilename) {
-      if(existingProductId.image) {
-        image_url = existingProductId.image
-      } else {
-        image_url = 'no-image.jpg'
-      }
-    } else image_url = imageFilename;
+    const existingProductId = await prisma.masterProduct.findUnique({
+      where: { id: +id },
+    });
 
     if (!existingProductId) {
-      if(imagePath) await unlinkAsync(imagePath);
+      if (imagePath) await unlinkAsync(imagePath);
       throw {
         name: "failedToUpdate",
-        message: "Can not Update, product is Not Found",
+        message: "Cannot update, product not found",
       };
     }
-    const existingProduct = await prisma.masterProduct.findFirst({
-      where: { name },
+
+    const category = await prisma.category.findUnique({
+      where: { id: +category_id },
     });
+
+    if (!category) {
+      if (imagePath) await unlinkAsync(imagePath);
+      throw { name: "failedToUpdate", message: "Category does not exist" };
+    }
+
+    // Check if another product already has the updated name
     if (name !== existingProductId.name) {
-      if (existingProduct) {
-        if(imagePath) await unlinkAsync(imagePath);
-        throw { name: "failedToUpdate", message: "Product has been Existed" };
+      const existingProductWithName = await prisma.masterProduct.findFirst({
+        where: { name },
+      });
+      if (existingProductWithName) {
+        if (imagePath) await unlinkAsync(imagePath);
+        throw {
+          name: "failedToUpdate",
+          message: "Product name already exists",
+        };
       }
     }
-    const existingSKU = await prisma.masterProduct.findUnique({
-      where: { sku },
-    });
+
+    // Check if another product already has the updated SKU
     if (sku !== existingProductId.sku) {
-      if (existingSKU) {
-        if(imagePath) await unlinkAsync(imagePath);
-        throw { name: "failedToUpdate", message: "SKU has been Existed" };
+      const existingProductWithSKU = await prisma.masterProduct.findUnique({
+        where: { sku },
+      });
+      if (existingProductWithSKU) {
+        if (imagePath) await unlinkAsync(imagePath);
+        throw { name: "failedToUpdate", message: "Product SKU already exists" };
       }
     }
-    if (existingProductId.image) {
-      if(existingProductId.image !== 'no-image.jpg') {
-        await unlinkAsync(
-          `${path.join("assets/masterProduct/", existingProductId.image)}`
-        );
-      }
+
+    // Remove old image if it's different from the new one
+    if (
+      existingProductId.image &&
+      existingProductId.image !== "no-image.jpg" &&
+      imageFilename &&
+      imageFilename !== existingProductId.image
+    ) {
+      await unlinkAsync(`assets/masterProduct/${existingProductId.image}`);
     }
-    const product = await prisma.masterProduct.update({
-      where: {
-        id: +id,
-      },
+
+    // Determine the image URL to save
+    if (!imageFilename) {
+      image_url = existingProductId.image || "no-image.jpg";
+    } else {
+      image_url = imageFilename;
+    }
+
+    // Perform the update operation
+    const updatedProduct = await prisma.masterProduct.update({
+      where: { id: +id },
       data: {
         name,
         image: image_url,
@@ -175,7 +202,8 @@ class MasterProductService {
         isdelete: isdeleteBoolean,
       },
     });
-    return product;
+
+    return updatedProduct;
   }
 
   static async deleteProduct(params) {
@@ -191,28 +219,28 @@ class MasterProductService {
       };
     // await unlinkAsync(existingProduct.image);
     const inventory = await prisma.inventory.findMany({
-      where : {
-        master_product_id : +params
-      }
-    })
+      where: {
+        master_product_id: +params,
+      },
+    });
 
     const checkDelete = (arr) => {
       let deleteArray = [];
-      for(const obj of arr) {
-        if(obj.quantity === 0) {
+      for (const obj of arr) {
+        if (obj.quantity === 0) {
           deleteArray.push(true);
         } else {
           deleteArray.push(false);
         }
       }
-      const decisionDelete = deleteArray.every(check => check === true)
+      const decisionDelete = deleteArray.every((check) => check === true);
 
       return decisionDelete;
-    }
+    };
 
     const decisionDelete = checkDelete(inventory);
-    
-    if(decisionDelete) {
+
+    if (decisionDelete) {
       const product = await prisma.masterProduct.delete({
         where: {
           id: +params,
@@ -221,8 +249,7 @@ class MasterProductService {
       return product;
     }
 
-    return 'There is still some Inventory left'
-
+    return "There is still some Inventory left";
   }
 }
 
