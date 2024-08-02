@@ -362,6 +362,7 @@ class TransactionService {
       take: limit,
       skip: skip,
     });
+    
     return productMovement;
   }
 
